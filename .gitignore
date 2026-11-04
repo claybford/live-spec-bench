@@ -1,0 +1,5 @@
+__pycache__/
+*.py[cod]
+# key-bearing configs substituted from the .tmpl files (dl-keys)
+/oc-inst.json
+/oc-oper.json
