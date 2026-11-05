@@ -26,7 +26,7 @@ class Basis(unittest.TestCase):
         files = out.split()
         self.assertEqual(files[0], "live-spec.html")
         self.assertIn("background.html", files)
-        self.assertIn("reuse.html", files)          # the split the hand-listed set missed
+        self.assertIn("portability.html", files)    # the split the hand-listed set missed
 
     def test_a_dirty_basis_is_refused(self):
         d = self.clone()
