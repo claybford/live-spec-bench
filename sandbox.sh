@@ -1,12 +1,16 @@
 #!/bin/bash
 # bench sandbox: bwrap default-empty namespace, one synthetic home per invocation.
 # Usage: BENCH_EV=<evidence dir> sandbox.sh REPO [--with-methodology] [--] CMD...
-# REPO is bound at /home/user/work inside; the methodology (live-spec.html and
-# background.html from the artifact under test, LSPEC_SRC) is ro-bound at
-# /home/user/methodology only with --with-methodology.
+# REPO is bound at /home/user/work inside; the methodology — every file of
+# live-spec.html's collection in the artifact under test, LSPEC_SRC, as its own
+# tool derives it (watch-nobackground) — is ro-bound at /home/user/methodology
+# only with --with-methodology. A dirty LSPEC_SRC is refused (dl-artifact).
 set -euo pipefail
 EV=${BENCH_EV:?set BENCH_EV to the evidence dir for this run}
 SRC=${LSPEC_SRC:?set LSPEC_SRC to the live-spec checkout under test (dl-artifact)}
+if [ -n "$(git -C "$SRC" status --porcelain)" ]; then
+  echo "sandbox.sh: LSPEC_SRC ($SRC) has uncommitted changes; the basis must be a commit (dl-artifact)" >&2; exit 2
+fi
 REPO=$1; shift
 METHOD=0
 if [ "${1:-}" = "--with-methodology" ]; then METHOD=1; shift; fi
@@ -28,9 +32,12 @@ ARGS=(
   --dir /home/user/Documents --bind "$REPO" "$WORK"
 )
 if [ "$METHOD" = 1 ]; then
-  ARGS+=( --dir /home/user/methodology
-    --ro-bind "$SRC/live-spec.html" /home/user/methodology/live-spec.html
-    --ro-bind "$SRC/background.html" /home/user/methodology/background.html )
+  mapfile -t FILES < <("$HERE/methodology-files.sh" "$SRC")
+  [ "${#FILES[@]}" -gt 0 ] || { echo "sandbox.sh: no methodology collection derived from $SRC" >&2; exit 2; }
+  ARGS+=( --dir /home/user/methodology )
+  for f in "${FILES[@]}"; do
+    ARGS+=( --ro-bind "$SRC/$f" "/home/user/methodology/$f" )
+  done
 fi
 ARGS+=( --setenv HOME /home/user --setenv OPENCODE_CONFIG_CONTENT "$OC"
   --chdir "$WORK" --die-with-parent --unshare-all --share-net )

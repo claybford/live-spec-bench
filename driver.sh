@@ -15,6 +15,11 @@ set -u
 HERE=$(cd "$(dirname "$0")" && pwd)
 EV=${BENCH_EV:?set BENCH_EV to the evidence dir for this run}
 SRC=${LSPEC_SRC:?set LSPEC_SRC to the live-spec checkout under test (dl-artifact)}
+if [ -n "$(git -C "$SRC" status --porcelain)" ]; then
+  echo "driver.sh: LSPEC_SRC ($SRC) has uncommitted changes; a run's basis is a commit, and the tool and" \
+       "files copied from the working tree must be that commit's (dl-artifact)" >&2
+  exit 2
+fi
 PHASE=${1:-all}
 mkdir -p "$EV/transcripts" "$EV/metrics" "$EV/logs"
 export BENCH_EV=$EV
