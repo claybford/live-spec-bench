@@ -94,6 +94,7 @@ setup() {
         if [ "$ARM" = method ]; then   # the tool rides only in the method arm (dl-baseline)
           cp "$SRC/lspec.py" "$BASE/"
           cp -r "$SRC/hooks" "$BASE/"
+          [ ! -d "$SRC/models" ] || cp -r "$SRC/models" "$BASE/"   # find's model, on a basis that carries one
         fi
         git -C "$BASE" add -A
         git -C "$BASE" -c user.email=bench@local -c user.name=bench \
