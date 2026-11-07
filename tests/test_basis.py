@@ -29,6 +29,17 @@ class Basis(unittest.TestCase):
         self.assertIn("background.html", files)
         self.assertIn("portability.html", files)    # the split the hand-listed set missed
 
+    def test_bound_set_leaves_out_this_spec(self):
+        d = self.clone()
+        graph = subprocess.run(["python3", "lspec.py", "--main", "live-spec.html", "show", "--graph"],
+                               cwd=d, capture_output=True, text=True, check=True).stdout
+        if "bench-spec.html" not in graph:
+            self.skipTest("this basis does not import the bench")
+        out = subprocess.run([str(HERE / "methodology-files.sh"), d], capture_output=True, text=True, check=True).stdout
+        files = out.split()
+        self.assertIn("portability.html", files)
+        self.assertFalse([f for f in files if f.endswith("bench-spec.html")], files)
+
     def test_a_dirty_basis_is_refused(self):
         d = self.clone()
         Path(d, "live-spec.html").write_text(Path(d, "live-spec.html").read_text() + "\n")
