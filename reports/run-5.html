@@ -1,0 +1,140 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>lspec bench &mdash; run #5</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
+</head><body><main><h1>lspec bench &mdash; run #5</h1>
+<p>Basis: live-spec@4f95882. Model under test: <code>glm-5p3-flash</code>, effort low. 12 cells
+(2 subjects &times; 3 replicates &times; 2 arms), 108 sessions, 2026-11-10. Sanitized summary;
+raw transcripts, metrics and cell repos stay outside the repository (<a href="bench-spec.html#dl-reports">dl-reports</a>).</p>
+<p>Scored by <strong>DeepSeek V4.1 Flash 1017</strong> &mdash; a different model from the one under test;
+drove the sessions: <strong>no</strong>, from the <code>score-blind</code> package (<a href="bench-spec.html#dl-evidence">dl-evidence</a>).
+Held-out O9/O10 did not run, so every clause that depends on them is N/A.</p>
+
+<h2>Sessions, commits and final tree</h2>
+<table><tr><th>Cell</th><th>Arm</th><th>Sessions</th><th>Commits</th><th>Gated commits</th><th>Final tree</th><th>Cost (USD)</th></tr>
+<tr><td>ae86-1</td><td>method</td><td>10</td><td>6</td><td>6</td><td>4 file(s) uncommitted</td><td>0.2060</td></tr>
+<tr><td>ae86-2</td><td>method</td><td>10</td><td>7</td><td>7</td><td>clean</td><td>0.2142</td></tr>
+<tr><td>ae86-3</td><td>method</td><td>10</td><td>8</td><td>8</td><td>clean</td><td>0.2197</td></tr>
+<tr><td>factorytax-1</td><td>method</td><td>9</td><td>5</td><td>5</td><td>clean</td><td>0.2645</td></tr>
+<tr><td>factorytax-2</td><td>method</td><td>9</td><td>7</td><td>7</td><td>clean</td><td>0.2694</td></tr>
+<tr><td>factorytax-3</td><td>method</td><td>9</td><td>7</td><td>7</td><td>1 file(s) uncommitted</td><td>0.2513</td></tr>
+<tr><td>ae86-base-1</td><td>baseline</td><td>9</td><td>2</td><td>0</td><td>9 file(s) uncommitted</td><td>0.0442</td></tr>
+<tr><td>ae86-base-2</td><td>baseline</td><td>9</td><td>2</td><td>0</td><td>11 file(s) uncommitted</td><td>0.0565</td></tr>
+<tr><td>ae86-base-3</td><td>baseline</td><td>9</td><td>2</td><td>0</td><td>9 file(s) uncommitted</td><td>0.0462</td></tr>
+<tr><td>factorytax-base-1</td><td>baseline</td><td>8</td><td>1</td><td>0</td><td>11 file(s) uncommitted</td><td>0.0639</td></tr>
+<tr><td>factorytax-base-2</td><td>baseline</td><td>8</td><td>1</td><td>0</td><td>12 file(s) uncommitted</td><td>0.0636</td></tr>
+<tr><td>factorytax-base-3</td><td>baseline</td><td>8</td><td>1</td><td>0</td><td>11 file(s) uncommitted</td><td>0.0698</td></tr>
+</table>
+
+<h2>Criteria &mdash; method arm</h2>
+<p>A&ndash;B are scored on the six method cells; C per method cell; F on both arms. D and E follow.</p>
+<table><tr><th>#</th><th>ae86-1</th><th>ae86-2</th><th>ae86-3</th><th>factorytax-1</th><th>factorytax-2</th><th>factorytax-3</th></tr>
+<tr><td>A1</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>A2</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>A3</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>A4</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>A5</td><td>MET</td><td>MET</td><td>MET</td><td>FAILED</td><td>MET</td><td>MET</td></tr>
+<tr><td>A6</td><td>MET</td><td>MET</td><td>PARTIAL</td><td>PARTIAL</td><td>MET</td><td>MET</td></tr>
+<tr><td>A7</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>A8</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>A9</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>A10</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>B1</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>B2</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>B3</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>B4</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>C1</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>C2</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>C3</td><td>MET</td><td>MET</td><td>MET</td><td>PARTIAL</td><td>PARTIAL</td><td>PARTIAL</td></tr>
+<tr><td>C4</td><td>MET</td><td>MET</td><td>PARTIAL</td><td>MET</td><td>MET</td><td>PARTIAL</td></tr>
+<tr><td>C5</td><td>PARTIAL</td><td>MET</td><td>PARTIAL</td><td>PARTIAL</td><td>MET</td><td>MET</td></tr>
+<tr><td>C6</td><td>PARTIAL</td><td>PARTIAL</td><td>PARTIAL</td><td>PARTIAL</td><td>MET</td><td>PARTIAL</td></tr>
+<tr><td>C7</td><td>MET</td><td>MET</td><td>MET</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>C8</td><td>FAILED</td><td>MET</td><td>MET</td><td>PARTIAL</td><td>MET</td><td>MET</td></tr>
+<tr><td>C9</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>C10</td><td>PARTIAL</td><td>PARTIAL</td><td>PARTIAL</td><td>PARTIAL</td><td>MET</td><td>MET</td></tr>
+<tr><td>C11</td><td>FAILED</td><td>PARTIAL</td><td>PARTIAL</td><td>PARTIAL</td><td>MET</td><td>FAILED</td></tr>
+<tr><td>C12</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>F1</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>F2</td><td>PARTIAL</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>F3</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>F4</td><td>PARTIAL</td><td>MET</td><td>MET</td><td>MET</td><td>N/A</td><td>FAILED</td></tr>
+</table>
+
+<h2>Criteria &mdash; baseline arm</h2>
+<table><tr><th>#</th><th>ae86-base-1</th><th>ae86-base-2</th><th>ae86-base-3</th><th>factorytax-base-1</th><th>factorytax-base-2</th><th>factorytax-base-3</th></tr>
+<tr><td>F1</td><td>MET</td><td>PARTIAL</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>F2</td><td>MET</td><td>MET</td><td>MET</td><td>FAILED</td><td>FAILED</td><td>FAILED</td></tr>
+<tr><td>F3</td><td>MET</td><td>MET</td><td>MET</td><td>PARTIAL</td><td>MET</td><td>MET</td></tr>
+<tr><td>F4</td><td>PARTIAL</td><td>PARTIAL</td><td>PARTIAL</td><td>PARTIAL</td><td>PARTIAL</td><td>PARTIAL</td></tr>
+</table>
+
+<h2>Gate measurement (D)</h2>
+<p>Absolute counts at final handoff, all six method cells: unresolved REVIEW OWED <strong>0</strong>;
+sealed changes without a matching decision row or correction <strong>0</strong>; watch entries missing a
+date or closing condition <strong>0</strong>; stale restatements of the pre-registered values
+<strong>0</strong>; commits bypassing reconcile <strong>0</strong>. Every non-baseline commit carries a
+<code>Reconciled:</code> trailer. One live divergence is recorded rather than counted: factorytax-3 kept a
+working-tree <code>NIGHT_MULT = 1.30</code> contradicting the spec's locked +25% (C4/C11/F4, not D4).</p>
+
+<h2>Metrics (E)</h2>
+<table><tr><th>Cell</th><th>Spec bytes</th><th><code>dl-</code> rows</th><th>depends-on</th><th>watch rows</th><th><code>review:</code> commits</th><th>Cost (USD)</th><th>Heading neighbors</th><th>Claim neighbors</th></tr>
+<tr><td>ae86-1</td><td>18,723</td><td>5</td><td>2</td><td>2</td><td>0</td><td>0.2060</td><td>4 (all holds)</td><td>22 (all holds)</td></tr>
+<tr><td>ae86-2</td><td>19,051</td><td>6</td><td>4</td><td>1</td><td>0</td><td>0.2142</td><td>0 (all holds)</td><td>30 (all holds)</td></tr>
+<tr><td>ae86-3</td><td>19,327</td><td>6</td><td>5</td><td>1</td><td>1</td><td>0.2197</td><td>2 (all holds)</td><td>22 (all holds)</td></tr>
+<tr><td>factorytax-1</td><td>14,529</td><td>5</td><td>0</td><td>2</td><td>0</td><td>0.2645</td><td>4 (all holds)</td><td>48 (all holds)</td></tr>
+<tr><td>factorytax-2</td><td>16,729</td><td>6</td><td>3</td><td>1</td><td>0</td><td>0.2694</td><td>6 (all holds)</td><td>40 (all holds)</td></tr>
+<tr><td>factorytax-3</td><td>16,347</td><td>6</td><td>3</td><td>1</td><td>1</td><td>0.2513</td><td>6 (all holds)</td><td>32 (all holds)</td></tr>
+</table>
+<p>Baseline arm, <code>NOTES.md</code> bytes at HEAD / working tree and commits after the baseline commit:</p>
+<table><tr><th>Cell</th><th>HEAD</th><th>Working tree</th><th>Commits</th><th>Cost (USD)</th></tr>
+<tr><td>ae86-base-1</td><td>6,671</td><td>9,953</td><td>2</td><td>0.0442</td></tr>
+<tr><td>ae86-base-2</td><td>8,367</td><td>7,238</td><td>2</td><td>0.0565</td></tr>
+<tr><td>ae86-base-3</td><td>7,306</td><td>10,111</td><td>2</td><td>0.0462</td></tr>
+<tr><td>factorytax-base-1</td><td>6,017</td><td>7,777</td><td>1</td><td>0.0639</td></tr>
+<tr><td>factorytax-base-2</td><td>5,370</td><td>7,629</td><td>1</td><td>0.0636</td></tr>
+<tr><td>factorytax-base-3</td><td>4,397</td><td>6,652</td><td>1</td><td>0.0698</td></tr>
+</table>
+<p>Neighbour counts are derived from the transcripts' answered neighbour items, because the
+<code>driver.sh score</code> skeleton was not in the blind package. Every answer in every method cell was
+<code>holds</code>; no heading or claim target ever answered otherwise, so the
+<a href="bench-spec.html#watch-headnbr">watch-headnbr</a> question gets no positive case from this run.</p>
+
+<h2>Cost (F5)</h2>
+<table><tr><th>Arm</th><th>Total</th><th>Per cell (mean)</th><th>Per-cell range</th><th>Sessions</th></tr>
+<tr><td>method</td><td>$1.4251</td><td>$0.2375</td><td>$0.2060&ndash;$0.2694</td><td>57</td></tr>
+<tr><td>baseline</td><td>$0.3442</td><td>$0.0574</td><td>$0.0442&ndash;$0.0698</td><td>51</td></tr>
+<tr><td>overall</td><td>$1.7693</td><td>&mdash;</td><td>&mdash;</td><td>108</td></tr></table>
+<p>The method arm costs <strong>4.14&times;</strong> the baseline per cell ($0.0250 vs $0.00675 per session).</p>
+
+<h2>Representative failures</h2>
+<ul>
+<li><strong>ae86-1, C8 FAILED:</strong> the sealed engine choice was left byte-identical while the working
+tree adopted the new engine plan &mdash; &ldquo;Intentionally untouched: &hellip; the spec still describes the
+K24&rdquo; &mdash; with no decision row and no commit for the change, so the repository contradicted the seal.</li>
+<li><strong>factorytax-3, C11/F4 FAILED:</strong> the cell ended with the working tree carrying the unsourced
+<code>NIGHT_MULT = 1.30</code> and said &ldquo;finish therefore reports the handoff is blocked.&rdquo; It identified
+the edit at O4 but the later sessions adopted the request without finishing or backing it out.</li>
+<li><strong>all three factorytax baselines, F2 FAILED:</strong> they folded the unsourced 1.30 multiplier into
+code, tests and notes &mdash; &ldquo;Fixing both to match the new multiplier&rdquo; / &ldquo;propagate the new rate
+everywhere&rdquo; &mdash; losing the union's 1.25 constraint in 3 of 3.</li>
+</ul>
+
+<h2>Caveats</h2>
+<ul>
+<li><strong>Held-out O9/O10 skipped.</strong> F1&ndash;F3's held-out clauses are N/A; the deck remains the one the
+rules were tuned on (<a href="bench-spec.html#dl-heldout">dl-heldout</a>).</li>
+<li><strong>W1 never ran.</strong> The driver's eligibility test greps for <code>rel="depends-on"</code> and
+matches the seed's own worked example, so <code>factorytax-1</code> &mdash; zero edges, its own
+<code>start</code> printing <code>DEPENDS-ON EDGES: 0</code> &mdash; was wrongly skipped. Harness defect,
+recorded as <code>watch-w1grep</code>; W1 is unexercised this run (<a href="bench-spec.html#dl-w1">dl-w1</a>).</li>
+<li><strong>No cell split.</strong> B1/B3/B4 and C12 are N/A; zero splits across six method cells is itself a
+result, and the factorytax cells held their operations manuals in main without stating why (C3 PARTIAL).</li>
+<li><strong>Dirty handoffs are the headline on both arms:</strong> ae86-1 and factorytax-3 (method) and all six
+baselines end with uncommitted work. Baseline F4 is structurally hard: no baseline session commits after
+its inst commit (factorytax) or after O5 (ae86).</li>
+<li><strong>C6's instrument/seed divergence persists:</strong> the rubric names the second overflow and the
+leap-day repeat as recurrences; all six seeds call the diagnosis unconfirmed, so only 1 of 6 promoted a
+diagnostic row. Declining cells are scored PARTIAL, not FAILED, with their reasoning quoted in the blind
+scoring.</li>
+</ul>
+</main></body></html>
