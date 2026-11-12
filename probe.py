@@ -88,9 +88,9 @@ FIXTURES = {
             ),
             neighbor=(
                 "bench-p1-neighbor",
-                'The nightly close job starts <a rel="depends-on" '
-                'href="#bench-p1-target">one hour after the batch window</a>, '
-                "so 01:00.",
+                'The nightly close job may start no earlier than <a rel="depends-on" '
+                'href="#bench-p1-target">the batch window plus one hour</a>, '
+                "so 05:00.",
             ),
             status=' Locked: the <a href="#bench-p1-target">close-service batch window is '
             "4 hours</a>.",
@@ -101,8 +101,8 @@ FIXTURES = {
                 "copy",
             ),
             passage_key="defines six annual withholding brackets",
-            neighbor_old="01:00",
-            neighbor_new="03:00",
+            neighbor_old="05:00",
+            neighbor_new="07:00",
             status_old="4 hours",
             status_new="6 hours",
         ),
@@ -331,6 +331,22 @@ def transcript_events(path):
     return events
 
 
+def transcript_complete(path):
+    """The transcript's final part is text, trailing step-finish markers ignored;
+    the same test as briefs.py's transcript_done (dl-completion). A missing or
+    cut transcript is not a session, and no outcome may be recorded for it."""
+    try:
+        lines = [l for l in open(path, errors="replace") if l.strip().startswith("{")]
+        for l in reversed(lines):
+            j = json.loads(l)
+            if j.get("type") in ("step_finish", "step-finish"):
+                continue
+            return j.get("type") == "text"
+    except FileNotFoundError:
+        return False
+    return False
+
+
 def answers(events, neighbor_id):
     out = {
         "neighbor": {"surfaced": False, "answer": None},
@@ -462,7 +478,10 @@ def cmd_check(ev, cell, subject, tag):
         raise SystemExit(f"probe: unknown tag {tag}")
     repo = Path(ev) / "cells" / cell
     html = main_spec(repo).read_text()
-    events = transcript_events(Path(ev) / "transcripts" / f"{cell}-{tag}.jsonl")
+    tpath = Path(ev) / "transcripts" / f"{cell}-{tag}.jsonl"
+    if not transcript_complete(tpath):
+        raise SystemExit(f"probe: {cell}-{tag} transcript incomplete; refusing to record")
+    events = transcript_events(tpath)
     ans = answers(events, FIXTURES[subject][tag]["neighbor"][0])
     n_out, d_out, p_out = classify(html, subject, tag, ans)
     state = Path(ev) / "probe-state" / f"{cell}-{tag}.json"

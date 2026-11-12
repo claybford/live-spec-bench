@@ -43,6 +43,14 @@ class Fixtures(unittest.TestCase):
         html = probe.with_fixtures(SPEC, "factorytax")
         self.assertTrue(probe.setup_done(html, "factorytax"))
 
+    def test_planted_neighbor_recomputation_is_stated(self):
+        """watch-p1anchor: run #6's factorytax plant read as still true at 01:00
+        because the claim named no anchor; the relation must move the value."""
+        fx = probe.FIXTURES["factorytax"]["P1"]
+        self.assertIn("plus one hour", fx["neighbor"][1])
+        self.assertIn(fx["neighbor_old"], fx["neighbor"][1])
+        self.assertEqual((fx["neighbor_old"], fx["neighbor_new"]), ("05:00", "07:00"))
+
     def test_passage_stages_before_main(self):
         html = probe.add_block(SPEC, '<p id="x">p</p>')
         self.assertLess(html.index('id="x"'), html.index("</main>"))
@@ -215,6 +223,8 @@ class EndToEnd(unittest.TestCase):
                     )
                     + "\n"
                 )
+        with open(Path(self.ev, "transcripts", "ae86-1-P1.jsonl"), "a") as f:
+            f.write(json.dumps({"type": "text", "part": {"text": "done"}}) + "\n")
         Path(self.ev, "metrics", "ae86-1-P1.json").write_text(
             json.dumps(
                 {"sessions": [{"cost": 0.02, "tokens_in": 100, "tokens_out": 20}]}
@@ -232,6 +242,27 @@ class EndToEnd(unittest.TestCase):
         self.assertEqual(result["described"]["outcome"], "cut")
         self.assertEqual(result["calls"], 6)
         self.assertEqual(result["tokens"], 120)
+
+
+class NoTranscript(unittest.TestCase):
+    def test_check_refuses_a_missing_transcript(self):
+        """watch-probebriefs: a session that never ran must not record an outcome."""
+        ev = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, ev, ignore_errors=True)
+        cell = Path(ev, "cells", "ae86-1")
+        cell.mkdir(parents=True)
+        Path(ev, "transcripts").mkdir()
+        Path(ev, "metrics").mkdir()
+        Path(cell, "spec.html").write_text(SPEC)
+        run(["git", "init", "-q"], cell)
+        run(["git", "-c", "user.email=a@b", "-c", "user.name=a", "add", "-A"], cell)
+        run(["git", "-c", "user.email=a@b", "-c", "user.name=a",
+             "commit", "-qm", "base"], cell)
+        probe.cmd_setup(ev, "ae86-1", "ae86")
+        probe.cmd_stage(ev, "ae86-1", "ae86", "P1")
+        with self.assertRaises(SystemExit):
+            probe.cmd_check(ev, "ae86-1", "ae86", "P1")
+        self.assertFalse(Path(ev, "probe-results.jsonl").exists())
 
 
 if __name__ == "__main__":
