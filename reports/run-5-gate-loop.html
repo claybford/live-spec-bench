@@ -1,0 +1,105 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lspec bench &mdash; run #5 gate-loop analysis</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
+</head><body><main>
+<h1>Run #5: the gate loop's footprint and yield</h1>
+<p>Basis: live-spec@4f95882; harness at bd24683. Author: the run's orchestrator, after the independent score
+(<a href="run-5.html">run #5 report</a>). This is post-hoc instrumentation and commentary, <strong>not a rescore</strong>:
+the A/C/F judgments referenced here are the independent grader's. Raw transcripts and metrics remain outside the
+repository (<a href="../bench-spec.html#dl-reports">dl-reports</a>).</p>
+
+<h2>Method</h2>
+<p>All 108 session transcripts were parsed for tool calls whose shell command invoked <code>reconcile</code>;
+those calls and their output bytes were counted per cell and session, then joined to the per-session cost and token
+metrics. Tick answers were grouped by item type from the command and the tool's <code>answered [item]</code> output.
+This measures invocations and emitted evidence, not the model's internal attention. A session's cost mixes the gate
+with the substantive edit it gated; those cannot be separated by this join.</p>
+
+<h2>Footprint</h2>
+<p>Six method cells, 57 sessions, 40 landed commits. The baseline arm has no tool and no gate.</p>
+<table><tr><th>Gate activity</th><th>Run total</th><th>Per landed method commit</th></tr>
+<tr><td><code>reconcile</code> invocations</td><td>77</td><td>1.9</td></tr>
+<tr><td><code>--next</code> calls</td><td>63</td><td>1.6</td></tr>
+<tr><td><code>--tick</code> answers</td><td>326</td><td>8.2</td></tr>
+<tr><td><strong>Total gate calls</strong></td><td><strong>466</strong></td><td><strong>11.7</strong></td></tr>
+<tr><td>Evidence text emitted by the gate</td><td>~580 KB, roughly 145k tokens</td><td>~3.6k tokens</td></tr>
+<tr><td>Checklist items shown as still to answer (repeat showings included)</td><td>439</td><td>11.0</td></tr>
+<tr><td>Mechanical items shown as still to fix (repeat showings included)</td><td>59</td><td>1.5</td></tr>
+<tr><td>Stale-token refusals after the candidate changed</td><td>4</td><td>0.1</td></tr></table>
+<p>Only about 1% of gate output repeated byte-for-byte within a session: the gate is already incremental. Its volume
+comes from showing fresh evidence per item, not from reprinting one checklist.</p>
+
+<h2>Answer yield</h2>
+<table><tr><th>Item</th><th>Answers observed</th><th>Observable state change</th></tr>
+<tr><td><code>neighbor</code></td><td>108 <code>holds</code>, 0 fixes</td><td>None through this item</td></tr>
+<tr><td><code>described</code></td><td>38 <code>confirmed</code>, 0 cuts</td><td>None through this item</td></tr>
+<tr><td><code>read</code></td><td>43 <code>read-whole</code>; 4 wrong-probe responses</td><td>Attestation per commit</td></tr>
+<tr><td><code>decided</code></td><td>20 <code>decided</code>, 20 <code>none</code></td><td>20 decision rows named</td></tr>
+<tr><td><code>watched</code></td><td>11 <code>watched</code>, 22 <code>none</code></td><td>11 watch entries named</td></tr>
+<tr><td><code>derived</code></td><td>24 <code>rederived</code>, 5 <code>unaffected</code>, 2 <code>consistent</code></td><td>Status lines regenerated</td></tr></table>
+<p>The uniform neighbor and description answers do not establish rubber-stamping; clean cells would produce the same
+answers. They also do not establish detection: independent scoring still found state defects in gated cells. A
+planted-defect measurement is needed to tell those readings apart (<a href="../bench-spec.html#watch-gateassent">watch-gateassent</a>).</p>
+
+<h2>Cost: what this join does and does not show</h2>
+<p>Method cost was $1.4251 across 57 sessions; baseline $0.3442 across 51. The 23 method sessions making no gate
+calls averaged <strong>$0.0059</strong>, against <strong>$0.0067</strong> for baseline sessions. Thus merely loading and
+observing the method's state was not measurably more expensive in this run; cost concentrated in sessions that made
+commits. Those sessions also did the substantive edits, so this is <strong>not</strong> an attribution of the 4.14&times;
+arm-level cost to the gate. It rules out the simpler claim that whole-file loading alone explains the gap.</p>
+
+<h2>Assessment</h2>
+<h3>Highs</h3>
+<ul>
+<li><strong>The hard boundary works.</strong> Every method commit carried a reconciliation receipt; D found zero unwarranted
+method commits. Runs #2&ndash;#3 found enforced and advisory operation indistinguishable on cost, while experience with
+passive notices shows advisory text is easy to ignore. Enforcement should not be traded away for convenience.</li>
+<li><strong>The productive part is forced externalization.</strong> Twenty decisions and eleven watches were named at the gate.
+These questions counter the stateless editor's failure to write down work it has already done.</li>
+<li><strong>Answers are candidate-bound.</strong> One item at a time, per-item tokens, evidence beside the question, and targeted
+reopening after edits prevent bulk acknowledgment. The four stale-token refusals are this mechanism working.</li>
+<li><strong>The structural layer catches real defects.</strong> While preparing run #5's report, it caught a linked report with no
+split row, forcing the explicit ruling that reports are documents rather than governing specs
+(<a href="../bench-spec.html#dl-reports-ext">dl-reports-ext</a>).</li>
+<li><strong>The loop records its own defects.</strong> The methodology's gate-digest, view-source and gate-cost diagnostic rows
+show iterative repair rather than an assumption that the checker is sound.</li>
+</ul>
+<h3>Lows</h3>
+<ul>
+<li><strong>Much of the loop is assent rather than demonstrated detection.</strong> One-word neighbor answers dominated and never
+changed a file. The gate accepts the same answer whether or not the agent consulted anything beyond the supplied excerpt.</li>
+<li><strong>A green gate certifies process, not state validity.</strong> Gated cells still adopted an unsourced engine without a
+decision, produced a seed with no real dependency edges, and missed inline watch markers. This is a scope limit, not a
+reason to abolish the gate, but it bounds what PASS may be read to mean.</li>
+<li><strong>About twelve tool round trips per commit is substantial interaction overhead.</strong> It also gives the model repeated
+opportunities to reason about satisfying the gate instead of the underlying work.</li>
+<li><strong>Whole-read attestation repeats per commit.</strong> It is weak evidence and often repeats a read already performed at
+the request's start.</li>
+<li><strong>Mechanical rules cannot currently distinguish file roles.</strong> The report/split-row encounter was valid under the
+written rule but produced meta-work about file classification rather than bench work.</li>
+</ul>
+
+<h2>Recommendations to the methodology owner</h2>
+<p>These are proposals, not decisions. The bench spec's fence places methodology decisions in live-spec.html.</p>
+<ol>
+<li><strong>Measure detection before optimizing cost.</strong> Plant a wrong neighbor claim and a stale derived-view clause;
+record which items answer fix, holds or confirmed. Add per-item call, token and fix-yield metrics to the run report.</li>
+<li><strong>Convert computable judgments into derivations.</strong> The status line's locked list and open count can be regenerated
+and diffed mechanically. Reserve judgment for whether the remaining prose faithfully represents its sources.</li>
+<li><strong>Make reads content-addressed once per request.</strong> Tool-mediated paged reads with recorded hashes would replace
+repeated per-commit attestations with a verifiable fact.</li>
+<li><strong>Keep one answer per item, but not necessarily one process per item.</strong> A stateful gate session, or individual
+tokens and evidence references within one structured answer pass, could cut round trips. Test it against planted defects
+before adoption; the risk is blind bulk acknowledgment.</li>
+<li><strong>Declare tracked non-spec file roles.</strong> Reports, fixtures and generated HTML should not default to supporting-spec
+obligations.</li>
+<li><strong>Instrument gate overhead directly in future runs.</strong> Arm-level cost cannot currently separate gate price from the
+work it forces.</li>
+</ol>
+
+<h2>Bottom line</h2>
+<p>Keep the hard gate and the watched/decided questions: they create durable state. The efficiency target is the
+attestation layer, not enforcement. Its detection power is the next thing to measure; run #5 supplies volume and yield,
+not proof that the one-word answers are either wasted or sufficient.</p>
+</main></body></html>
