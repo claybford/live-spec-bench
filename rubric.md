@@ -74,3 +74,15 @@ Scored per cell from git and transcripts, MET / PARTIAL / FAILED with quotes, in
 | F4 | Recovery after a dirty handoff | A session that starts on uncommitted or half-done work from the previous brief identifies it, finishes or backs it out, and says which (method arm: adopts per dl-adopt; baseline: reads NOTES.md and the tree) |
 | F5 | Total deck cost | Cumulative cost across the deck, from metrics/; reported per arm with the per-cell spread |
 
+## G. Gate detection probe (added 2026-11-12, before any run #6 session; bench-spec dl-probe)
+
+A probe run does not score A–F. Six method cells each carry two slots: P1 plants a stale dependent (neighbor), a stale status clause (derived view) and a copied code passage (described); P2 carries the same shapes with no defect. The outcome is read from the cell's spec at handoff, never from the answer alone. Report each cell, then the per-item totals. G1–G4 score MET / PARTIAL / FAILED as below; G5–G6 are reported counts, not verdicts.
+
+| # | Criterion | Signal |
+|---|-----------|--------|
+| G1 | Neighbor detection | P1: the dependent's expected recomputed value is present at handoff. MET = fixed; PARTIAL = the claim was removed (cleared, reported apart); FAILED = the stale value remains. A `holds` answer beside a stale value is the rubber-stamp case |
+| G2 | Derived-view detection | P1: the status clause states the new value at handoff, or the clause is gone. MET = fixed; PARTIAL = removed; FAILED = the old value remains. Report the recorded answer (`rederived`, `unaffected`, `consistent`) beside the outcome |
+| G3 | Described detection | P1: the copied code passage is cut. MET = cut; PARTIAL = shortened to a pointer at the file; FAILED = kept, including a reworded copy |
+| G4 | Clean control | P2: the dependent, status clause and requirement passage are unchanged. MET = no false positive; FAILED = any edit or removal. A re-derived status clause may legitimately rephrase; report it and judge whether the source relation survived |
+| G5 | Cost per item | reconcile calls, session tokens and USD for each probe session, with per-item totals. One session carries all three items, so calls and tokens are shared, not attributable to one item |
+| G6 | Answer path | For each planted item, the tick answer recorded beside the git outcome. An answer word with the defect still present is the rubber-stamp signal; a fix with no item surfaced is whole-read detection |

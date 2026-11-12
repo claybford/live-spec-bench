@@ -30,7 +30,7 @@ import sys
 from pathlib import Path
 
 SUBJECTS = ("ae86", "factorytax")
-PHASES = ("inst", "deck")
+PHASES = ("inst", "deck", "probe")
 ARMS = ("method", "baseline")
 
 INST_TAIL = """\
@@ -232,13 +232,48 @@ DECK = [
     ("W1",  SUBJECTS,         M,  "deck", "W1.txt",              "none",          "w1",      W1),
 ]
 
+# Probe run (dl-probe): one commit per slot. P1 plants a stale dependent, a
+# stale status clause and a copied code passage; P2 carries the same shapes
+# with no defect. The briefs share a shape; only the staged fixture differs,
+# so P2 measures false positives rather than a second task.
+P1 = {
+    "ae86": """\
+The driveshaft shop called: the pinion flange runout measured 0.18 mm, not the
+0.12 in my notes. Update the spec so everything's consistent; I left a note
+there too.
+""",
+    "factorytax": """\
+The close-service vendor moved our batch window to 6 hours, not the 4 in my
+notes. Update the spec so everything's consistent; I left a note there too.
+""",
+}
+
+P2 = {
+    "ae86": """\
+The driveshaft shop called: they re-balanced the shaft to 1.8 g-mm, not the 2.5
+in my notes. Update the spec so everything's consistent; I left a note there
+too.
+""",
+    "factorytax": """\
+The close-service vendor extended retention to 120 days, not the 90 in my
+notes. Update the spec so everything's consistent; I left a note there too.
+""",
+}
+
+PROBE = [
+    ("P1", SUBJECTS, M, "probe", "{s}-P1.txt", "probe_plant", "none", P1),
+    ("P2", SUBJECTS, M, "probe", "{s}-P2.txt", "probe_clean", "none", P2),
+]
+
+REGISTRY = DECK + PROBE
+
 
 def entries(subject, phase, arm="method"):
     """Ordered registry rows for SUBJECT PHASE in ARM."""
     if subject not in SUBJECTS or phase not in PHASES or arm not in ARMS:
         sys.exit(f"unknown subject/phase/arm: {subject} {phase} {arm}")
     out = []
-    for tag, subs, arms, ph, fname, hook, cond, body in DECK:
+    for tag, subs, arms, ph, fname, hook, cond, body in REGISTRY:
         if ph == phase and subject in subs and arm in arms:
             if isinstance(body, dict):
                 body = body[subject]
@@ -304,15 +339,15 @@ def session_done(ev, name):
             and transcript_done(ev / "transcripts" / f"{name}.jsonl"))
 
 
-def cmd_verify_route(ev, cell, subject, arm="method"):
-    """After a cell's deck: every planned session delivered the registry's
+def cmd_verify_route(ev, cell, subject, arm="method", phase="deck"):
+    """After a cell's deck or probe: every planned session delivered the registry's
     exact bytes (briefs-used/, written by run_session.sh) and left a complete
     transcript. W1 and held-out slots may instead have a driver-log skip line
     (dl-w1, dl-heldout)."""
     ev = Path(ev)
     log = (ev / "driver-progress.log").read_text() if (ev / "driver-progress.log").exists() else ""
     bad = []
-    for tag, _fname, _hook, cond, body in entries(subject, "deck", arm):
+    for tag, _fname, _hook, cond, body in entries(subject, phase, arm):
         name = f"{cell}-{tag}"
         used = ev / "briefs-used" / f"{name}.txt"
         if cond in ("w1", "heldout") and not used.exists():
@@ -360,6 +395,61 @@ def neighbor_counts(ev, cell):
     return counts
 
 
+def probe_section(ev):
+    """Mechanical half of a probe run's summary (dl-probe; rubric G): per
+    session, the outcome from git at handoff and the answer the transcript
+    recorded, then an aggregate per item. A hit is the defect absent; assent is
+    an answer word beside a defect that remained. No paths, no transcripts."""
+    ev = Path(ev)
+    p = ev / "probe-results.jsonl"
+    if not p.exists():
+        return []
+    results = []
+    for line in p.read_text().splitlines():
+        if line.strip():
+            try:
+                results.append(json.loads(line))
+            except Exception:
+                pass
+    if not results:
+        return []
+    h = ["<h2>Gate detection probe (G) &mdash; dl-probe</h2>",
+         "<p>P1 plants a stale dependent (neighbor), a stale status clause (derived) and a "
+         "copied code passage (described); P2 carries the same shapes with no defect. "
+         "Outcome is from the spec at handoff; the answer is the tick word the transcript "
+         "recorded. A&ndash;F are not scored on a probe run.</p>",
+         "<table><tr><th>Cell</th><th>Slot</th><th>Neighbor</th><th>Derived</th>"
+         "<th>Described</th><th>Calls</th><th>Tokens</th><th>Cost (USD)</th></tr>"]
+    for r in sorted(results, key=lambda r: (r.get("cell", ""), r.get("tag", ""))):
+        def cell(item):
+            d = r.get(item, {})
+            mark = "" if d.get("surfaced") else " (not surfaced)"
+            return f"{d.get('outcome', '?')} / {d.get('answer') or 'none'}{mark}"
+        h.append(f"<tr><td>{r.get('cell')}</td><td>{r.get('tag')}</td>"
+                 f"<td>{cell('neighbor')}</td><td>{cell('derived')}</td>"
+                 f"<td>{cell('described')}</td><td>{r.get('calls', 0)}</td>"
+                 f"<td>{r.get('tokens', 0)}</td><td>{r.get('cost', 0):.3f}</td></tr>")
+    h.append("</table><h2>Per item</h2><table><tr><th>Item</th><th>Planted</th>"
+             "<th>Hit / cleared / miss</th><th>Assent with defect kept</th>"
+             "<th>Clean control false positives</th><th>Calls</th><th>Tokens</th></tr>")
+    planted = [r for r in results if r.get("kind") == "plant"]
+    clean = [r for r in results if r.get("kind") == "clean"]
+    for item, hit in (("neighbor", "fixed"), ("derived", "fixed"), ("described", "cut")):
+        hits = sum(r[item].get("outcome") == hit for r in planted)
+        cleared = sum(r[item].get("outcome") in ("cleared", "removed", "shortened") for r in planted)
+        miss = len(planted) - hits - cleared
+        assent = sum(r[item].get("outcome") not in (hit, "cleared", "removed", "shortened")
+                     and (r[item].get("answer") or "none") != "none" for r in planted)
+        fp = sum(r[item].get("outcome") != "kept" for r in clean)
+        calls_n = sum(r.get("calls", 0) for r in planted)
+        tokens_n = sum(r.get("tokens", 0) for r in planted)
+        h.append(f"<tr><td>{item}</td><td>{len(planted)}</td>"
+                 f"<td>{hits} / {cleared} / {miss}</td><td>{assent}</td>"
+                 f"<td>{fp} of {len(clean)}</td><td>{calls_n}</td><td>{tokens_n}</td></tr>")
+    h.append("</table>")
+    return h
+
+
 def cmd_skeleton(ev, out):
     """The mechanical half of a run's sanitized summary (dl-reports): per
     session, the cell, slot, completion, commits typed from the cell's log,
@@ -381,10 +471,7 @@ def cmd_skeleton(ev, out):
         gated = sum("Reconciled: checklist" in c for c in commits)
         rows.append((cell, tag, "done" if session_done(ev, name) else "INCOMPLETE",
                      len(commits), gated, cost))
-    crit = ([f"A{i}" for i in range(1, 11)] + [f"B{i}" for i in range(1, 5)]
-            + [f"C{i}" for i in range(1, 13)] + [f"F{i}" for i in range(1, 6)])
     cells = sorted({r[0] for r in rows})
-    nbr = {c: neighbor_counts(ev, c) for c in cells}
     h = ["<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">",
          "<title>lspec bench — run summary</title>",
          "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/water.css@2/out/light.css\">",
@@ -395,16 +482,27 @@ def cmd_skeleton(ev, out):
          "<th>Commits</th><th>Gated</th><th>Cost (USD)</th></tr>"]
     h += [f"<tr><td>{c}</td><td>{t}</td><td>{d}</td><td>{n}</td><td>{g}</td><td>{cost:.3f}</td></tr>"
           for c, t, d, n, g, cost in rows]
-    h += ["</table><h2>Criteria (MET / PARTIAL / FAILED, with quoted evidence)</h2><table><tr><th>#</th>"
-          + "".join(f"<th>{c}</th>" for c in cells) + "</tr>"]
-    h += ["<tr><td>" + k + "</td>" + "".join("<td>[score]</td>" for _ in cells) + "</tr>" for k in crit]
-    h += ["</table><h2>Gate measurement (D) and metrics (E)</h2><p>[D-series counts per cell; "
-          "E-series from the sessions table]</p>",
-          "<table><tr><th>Cell</th><th>Heading neighbors: holds / other</th>"
-          "<th>Claim neighbors: holds / other</th></tr>"]
-    h += [f"<tr><td>{c}</td><td>{nbr[c]['heading']['holds']} / {nbr[c]['heading']['other']}</td>"
-          f"<td>{nbr[c]['claim']['holds']} / {nbr[c]['claim']['other']}</td></tr>" for c in cells]
-    h += ["</table><p>Scored by: [model or human]; drove the sessions: [yes/no] (dl-evidence).</p>",
+    h.append("</table>")
+    probe = probe_section(ev)
+    if probe:
+        h += probe
+    else:
+        crit = ([f"A{i}" for i in range(1, 11)] + [f"B{i}" for i in range(1, 5)]
+                + [f"C{i}" for i in range(1, 13)] + [f"F{i}" for i in range(1, 6)])
+        nbr = {c: neighbor_counts(ev, c) for c in cells}
+        h += ["<h2>Criteria (MET / PARTIAL / FAILED, with quoted evidence)</h2><table><tr><th>#</th>"
+              + "".join(f"<th>{c}</th>" for c in cells) + "</tr>"]
+        h += ["<tr><td>" + k + "</td>" + "".join("<td>[score]</td>" for _ in cells) + "</tr>"
+              for k in crit]
+        h += ["</table><h2>Gate measurement (D) and metrics (E)</h2><p>[D-series counts per cell; "
+              "E-series from the sessions table]</p>",
+              "<table><tr><th>Cell</th><th>Heading neighbors: holds / other</th>"
+              "<th>Claim neighbors: holds / other</th></tr>"]
+        h += [f"<tr><td>{c}</td><td>{nbr[c]['heading']['holds']} / {nbr[c]['heading']['other']}</td>"
+              f"<td>{nbr[c]['claim']['holds']} / {nbr[c]['claim']['other']}</td></tr>"
+              for c in cells]
+        h.append("</table>")
+    h += ["<p>Scored by: [model or human]; drove the sessions: [yes/no] (dl-evidence).</p>",
           "<h2>Representative failures</h2><p>[two or three, "
           "quoted from transcripts, no paths]</p></main></body></html>"]
     Path(out).write_text("\n".join(h) + "\n")
@@ -413,7 +511,7 @@ def cmd_skeleton(ev, out):
 
 def main(argv):
     usage = ("usage: briefs.py emit-all DIR | plan SUBJECT PHASE [ARM] | "
-             "verify-route EV CELL SUBJECT [ARM] | done EV NAME | skeleton EV OUT")
+             "verify-route EV CELL SUBJECT [ARM] [PHASE] | done EV NAME | skeleton EV OUT")
     if len(argv) < 2:
         sys.exit(usage)
     cmd = argv[1]
@@ -421,8 +519,10 @@ def main(argv):
         cmd_emit_all(argv[2])
     elif cmd == "plan" and len(argv) in (4, 5):
         cmd_plan(argv[2], argv[3], *argv[4:])
-    elif cmd == "verify-route" and len(argv) in (5, 6):
-        cmd_verify_route(argv[2], argv[3], argv[4], *argv[5:])
+    elif cmd == "verify-route" and len(argv) in (5, 6, 7):
+        cmd_verify_route(argv[2], argv[3], argv[4],
+                         argv[5] if len(argv) > 5 else "method",
+                         argv[6] if len(argv) > 6 else "deck")
     elif cmd == "done" and len(argv) == 4:
         sys.exit(0 if session_done(argv[2], argv[3]) else 1)
     elif cmd == "skeleton" and len(argv) == 4:

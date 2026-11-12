@@ -3,13 +3,13 @@
 # briefs by the registry, stages material, resumes, classifies completion.
 # Replaces the per-run hand-driven steps whose defects are recorded in the
 # bench spec (diag-staging, watch-prestaged, watch-partial, watch-rc).
-# Phases: setup | inst | deck | all (default) | score (summary skeleton) |
-# score-blind (the grader's package: evidence and rubric, nothing of the
-# orchestrator's — dl-evidence). Two arms (dl-baseline): method cells carry
-# lspec and hooks, baseline cells a NOTES.md brief and no tool; held-out slots
-# run only under BENCH_HELDOUT=1 (dl-heldout). Resumable: a session whose
-# transcript ends in a final text part and whose end-of-session HEAD stamp
-# exists is never re-run; an incomplete transcript is quarantined to
+# Phases: setup | inst | deck | probe | all (default) | score | score-blind.
+# BENCH_PROCEDURE=outcome (default) runs the twelve-cell two-arm deck; =probe
+# runs the six method cells through the planted-defect probe (dl-probe).
+# Method cells carry lspec and hooks, baseline cells a NOTES.md brief and no
+# tool; held-out slots run only under BENCH_HELDOUT=1 (dl-heldout). Resumable:
+# a session whose transcript ends in a final text part and whose end-of-session
+# HEAD stamp exists is never re-run; an incomplete transcript is quarantined to
 # *.partial (dl-completion).
 set -u
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -21,8 +21,15 @@ if [ -n "$(git -C "$SRC" status --porcelain)" ]; then
   exit 2
 fi
 PHASE=${1:-all}
+# outcome (default): twelve cells, two arms, the operating deck (dl-baseline).
+# probe: six method cells, P1/P2 planted-defect slots (dl-probe).
+PROCEDURE=${BENCH_PROCEDURE:-outcome}
 mkdir -p "$EV/transcripts" "$EV/metrics" "$EV/logs"
 export BENCH_EV=$EV
+
+# arms this procedure instantiates and drives; a probe has no baseline to
+# plant a spec defect in (dl-probe)
+arms() { if [ "$PROCEDURE" = probe ]; then echo method; else echo "method baseline"; fi; }
 
 if [ -z "${LSPEC_BENCH_INHIBITED:-}" ] && command -v systemd-inhibit >/dev/null; then
   export LSPEC_BENCH_INHIBITED=1
@@ -80,12 +87,23 @@ arm_of() { case "$1" in *-base-*) echo baseline ;; *) echo method ;; esac; }
 cells_of() { echo "$1-$2"; }   # cells_of SUBJECT N -> method cell name
 base_cell() { echo "$1-base-$2"; }
 
+# dl-adopt: a method cell whose previous brief left an lspec request open is
+# adopted by the next brief, as the operator's standing say-so
+adopt_if_open() {  # adopt_if_open CELL REPO TAG
+  local cell=$1 repo=$2 tag=$3
+  if [ "$(arm_of "$cell")" = method ] && [ -f "$(git -C "$repo" rev-parse --absolute-git-dir)/lspec/request.json" ]; then
+    (cd "$repo" && python3 lspec.py start --adopt --reason "deck brief $tag per dl-adopt" >> "$EV/logs/$cell.adopt.log" 2>&1) \
+      && log "$cell $tag adopted the open request" \
+      || log "$cell $tag adopt not needed or refused (see logs)"
+  fi
+}
+
 setup() {
   local S N CELL HOOKDIR H ARM BASE
   mkdir -p "$EV/subjects" "$EV/cells"
   python3 "$HERE/briefs.py" emit-all "$EV/briefs" || { log "FATAL brief generation failed"; exit 1; }
   for S in ae86 factorytax; do
-    for ARM in method baseline; do
+    for ARM in $(arms); do
       BASE="$EV/subjects/$S-base"; [ "$ARM" = baseline ] && BASE="$EV/subjects/$S-base-baseline"
       if [ ! -d "$BASE" ]; then
         cp -a "$HERE/subjects/$S" "$BASE"
@@ -123,7 +141,7 @@ inst() {
   local N S ARM CELL PLAN TAG FILE HOOK COND
   for N in 1 2 3; do
     for S in ae86 factorytax; do
-      for ARM in method baseline; do
+      for ARM in $(arms); do
         CELL=$(cells_of "$S" "$N"); [ "$ARM" = baseline ] && CELL=$(base_cell "$S" "$N")
         PLAN=$(python3 "$HERE/briefs.py" plan "$S" inst "$ARM") || { log "FATAL brief plan $S inst $ARM"; exit 1; }
         IFS=$'\t' read -r TAG FILE HOOK COND <<< "$PLAN"
@@ -150,11 +168,7 @@ dispatch() {  # dispatch CELL SUBJECT REPO WIRED LINE
   fi
   # open-requests policy (dl-adopt): a method cell whose previous brief left an
   # lspec request open is adopted by the next brief, as the operator's say-so
-  if [ "$(arm_of "$cell")" = method ] && [ -f "$(git -C "$repo" rev-parse --absolute-git-dir)/lspec/request.json" ]; then
-    (cd "$repo" && python3 lspec.py start --adopt --reason "deck brief $TAG per dl-adopt" >> "$EV/logs/$cell.adopt.log" 2>&1) \
-      && log "$cell $TAG adopted the open request" \
-      || log "$cell $TAG adopt not needed or refused (see logs)"
-  fi
+  adopt_if_open "$cell" "$repo" "$TAG"
   case "$HOOK" in
     none) ;;
     rebuild_notes) stage_rebuild_notes "$repo" ;;
@@ -201,6 +215,45 @@ decks() {
   done
 }
 
+# probe_cell: one method cell's probe deck (dl-probe). P1's own step first
+# commits the fixture claims (so the dependent and status clause pre-exist at
+# HEAD), then stages its uncommitted passage, runs the session and records what
+# the gate surfaced and what the session did. Fail-closed: a staging or
+# measurement failure aborts the run.
+probe_cell() {  # probe_cell CELL SUBJECT
+  local cell=$1 subject=$2 repo="$EV/cells/$1"
+  local TAG FILE HOOK COND
+  while IFS=$'\t' read -r TAG FILE HOOK COND; do
+    # the fixture is P1's premise, so it is committed in P1's own step
+    # (diag-staging: never a launch preamble)
+    if [ "$TAG" = P1 ]; then
+      python3 "$HERE/probe.py" setup "$EV" "$cell" "$subject" \
+        || { log "FATAL probe setup $cell"; exit 1; }
+    fi
+    adopt_if_open "$cell" "$repo" "$TAG"
+    python3 "$HERE/probe.py" stage "$EV" "$cell" "$subject" "$TAG" \
+      || { log "FATAL probe stage $cell $TAG"; exit 1; }
+    sess "$cell" oper "$EV/briefs/$FILE" "$TAG"
+    python3 "$HERE/probe.py" check "$EV" "$cell" "$subject" "$TAG" \
+      || { log "FATAL probe check $cell $TAG"; exit 1; }
+  done <<< "$(python3 "$HERE/briefs.py" plan "$subject" probe method)"
+  python3 "$HERE/briefs.py" verify-route "$EV" "$cell" "$subject" method probe \
+    || { log "FATAL probe route $cell"; exit 1; }
+}
+
+probe_deck() {
+  local N P1 P2 R1 R2
+  for N in 1 2 3; do
+    probe_cell "$(cells_of ae86 "$N")" ae86 & P1=$!
+    probe_cell "$(cells_of factorytax "$N")" factorytax & P2=$!
+    R1=0; R2=0; wait "$P1" || R1=$?; wait "$P2" || R2=$?
+    # fail-closed: a staging or measurement failure in a probe subshell aborts
+    if [ "$R1" -ne 0 ] || [ "$R2" -ne 0 ]; then
+      log "FATAL probe subshell failed (rc $R1/$R2)"; exit 1
+    fi
+  done
+}
+
 # the blind grader's package (dl-evidence): transcripts, metrics, the cells'
 # repos and the rubric — no briefs, no deck, no driver log, no orchestrator
 # notes. The grader did not drive the sessions; the report says who scored.
@@ -209,7 +262,20 @@ score_blind() {
   rm -rf "$B"; mkdir -p "$B"
   cp -a "$EV/transcripts" "$EV/metrics" "$EV/cells" "$B/"
   cp "$HERE/rubric.md" "$HERE/seed-inventory.md" "$B/"
-  cat > "$B/GRADER.txt" <<'EOT'
+  if [ "$PROCEDURE" = probe ]; then
+    cat > "$B/GRADER.txt" <<'EOT'
+You are scoring a benchmark probe run you did not take part in (bench-spec
+ dl-probe). In this directory: rubric.md and seed-inventory.md (the instruments),
+transcripts/ (one jsonl per session, named CELL-SLOT), metrics/ (cost per
+session), and cells/ (each cell's repository at run end; its git history is the
+evidence). Score series G only, per cell, reporting for each probe session the
+outcome found in git at handoff and the tick answer recorded in the transcript
+(quote both). A-F are not scored on a probe run: it measures detection, not
+seeding, operation or outcomes. Do not infer what a session was asked beyond
+its transcript.
+EOT
+  else
+    cat > "$B/GRADER.txt" <<'EOT'
 You are scoring a benchmark run you did not take part in. In this directory:
 rubric.md and seed-inventory.md (the pre-registered instruments), transcripts/
 (one jsonl per session, named CELL-SLOT), metrics/ (cost per session), cells/
@@ -220,6 +286,7 @@ asked beyond its transcript. Write the scores as a table, then the D-series
 counts per cell, then F-series outcomes for both arms (method cells S-N,
 baseline cells S-base-N).
 EOT
+  fi
   log "blind package at $B ($(ls "$B/transcripts" | wc -l) transcripts); launch the grader in a fresh sandbox on it"
 }
 
@@ -227,9 +294,10 @@ case "$PHASE" in
   setup) setup ;;
   inst)  inst ;;
   deck)  decks ;;
-  all)   setup; inst; decks ;;
+  probe) probe_deck ;;
+  all)   setup; inst; if [ "$PROCEDURE" = probe ]; then probe_deck; else decks; fi ;;
   score) python3 "$HERE/briefs.py" skeleton "$EV" "$EV/report-skeleton.html" ;;
   score-blind) score_blind ;;
-  *) echo "usage: driver.sh [setup|inst|deck|all|score|score-blind]" >&2; exit 2 ;;
+  *) echo "usage: driver.sh [setup|inst|deck|probe|all|score|score-blind]" >&2; exit 2 ;;
 esac
 log "$PHASE DONE"

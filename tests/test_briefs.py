@@ -62,6 +62,36 @@ class BenchDriver(unittest.TestCase):
         self.assertIn('<td>C12</td>', html_)
         self.assertNotIn(ev, html_)                              # no evidence paths leak
 
+    def test_probe_registry_is_method_only(self):
+        """dl-probe: P1/P2 are method slots; a baseline has no spec to plant in."""
+        plan = lambda *a: subprocess.run([sys.executable, self.BRIEFS, 'plan', *a],
+                                         capture_output=True, text=True).stdout
+        method = [l.split('\t')[0] for l in plan('ae86', 'probe').splitlines()]
+        self.assertEqual(method, ['P1', 'P2'])
+        self.assertEqual(plan('ae86', 'probe', 'baseline'), '')
+        self.assertIn('probe_plant', plan('ae86', 'probe'))
+        self.assertIn('probe_clean', plan('ae86', 'probe'))
+
+    def test_verify_route_probe_phase(self):
+        """verify-route reads the phase it is given: probe slots are delivered
+        and complete, with no W1/held-out skip path."""
+        ev = tempfile.mkdtemp(); self.addCleanup(shutil.rmtree, ev, ignore_errors=True)
+        sys.path.insert(0, os.path.dirname(self.BRIEFS))
+        import briefs
+        os.makedirs(os.path.join(ev, 'briefs-used'))
+        os.makedirs(os.path.join(ev, 'cells', 'ae86-1'))
+        for tag, _fname, _h, _c, body in briefs.entries('ae86', 'probe', 'method'):
+            Path(ev, 'briefs-used', 'ae86-1-%s.txt' % tag).write_text(body)
+            self.case(ev, 'ae86-1-' + tag, ['text'])
+        r = subprocess.run([sys.executable, self.BRIEFS, 'verify-route', ev, 'ae86-1',
+                            'ae86', 'method', 'probe'], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        os.remove(os.path.join(ev, 'briefs-used', 'ae86-1-P2.txt'))
+        r = subprocess.run([sys.executable, self.BRIEFS, 'verify-route', ev, 'ae86-1',
+                            'ae86', 'method', 'probe'], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn('P2: no delivered brief', r.stderr)
+
     def test_registry_has_two_arms_and_held_out_slots(self):
         """dl-baseline, dl-heldout: the method arm's briefs are byte-pinned;
         the baseline arm gets its own inst brief and no tool-bound slots; held-out
