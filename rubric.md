@@ -1,6 +1,6 @@
 # lspec bench — scoring rubric (standing instrument; pre-registered 2026-10-04, before any scored session ran)
 
-Model under test: fireworks-ai/accounts/fireworks/models/glm-5p3-flash, effort low (pinned in sandbox-home config).
+Model under test: fireworks-ai/accounts/fireworks/models/glm-5p3-flash, effort high (pinned in sandbox-home config).
 Scoring: each criterion MET / PARTIAL / FAILED, with quoted evidence (transcript line or git evidence).
 Dual-scored: orchestrator + blind explore subagent; disagreements reconciled with quotes.
 Scored by (from run #5, added 2026-10-08 before any run #5 session): a grader that did not drive the sessions — a second model, or a human pass — working from `driver.sh score-blind`'s package (transcripts, metrics, cell repos, this rubric; no briefs, deck or driver log). The report header states who scored and whether they drove the sessions (bench-spec dl-evidence).

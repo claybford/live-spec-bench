@@ -15,7 +15,7 @@ mkdir -p "$EV/transcripts" "$EV/metrics" "$EV/briefs-used"
 cp "$BRIEF" "$EV/briefs-used/$NAME.txt"   # delivered bytes per session (verify-route)
 RC=0
 SANDBOX_HOME=$HOME_DIR BENCH_EV=$EV "$HERE/sandbox.sh" "$REPO" $METHOD_FLAG -- \
-  opencode run --standalone --format json -m 'fireworks-ai/accounts/fireworks/models/glm-5p3-flash#low' \
+  opencode run --standalone --format json -m 'fireworks-ai/accounts/fireworks/models/glm-5p3-flash#high' \
   "$(cat "$BRIEF")" > "$EV/transcripts/$NAME.jsonl" 2> "$EV/transcripts/$NAME.stderr" || RC=$?
 python3 "$HERE/extract_metrics.py" "$HOME_DIR/.local/share/opencode/opencode.db" \
   "$EV/metrics/$NAME.json" "$NAME"
