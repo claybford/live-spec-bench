@@ -92,6 +92,24 @@ class BenchDriver(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         self.assertIn('P2: no delivered brief', r.stderr)
 
+    def test_emit_all_covers_every_registry_file(self):
+        """watch-probebriefs: emit-all must write every file plan can route, the
+        probe slots included — a probe run's first slot died on a missing brief."""
+        ev = tempfile.mkdtemp(); self.addCleanup(shutil.rmtree, ev, ignore_errors=True)
+        d = os.path.join(ev, 'briefs')
+        r = subprocess.run([sys.executable, self.BRIEFS, 'emit-all', d], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        sys.path.insert(0, os.path.dirname(self.BRIEFS))
+        import briefs
+        for subject in briefs.SUBJECTS:
+            for phase in briefs.PHASES:
+                for arm in briefs.ARMS:
+                    for _tag, fname, _hook, _cond, _body in briefs.entries(subject, phase, arm):
+                        self.assertTrue(os.path.exists(os.path.join(d, fname)),
+                                        f'{subject}/{phase}/{arm}: {fname} not emitted')
+        self.assertIn('ae86-P1.txt', os.listdir(d))
+        self.assertIn('factorytax-P2.txt', os.listdir(d))
+
     def test_registry_has_two_arms_and_held_out_slots(self):
         """dl-baseline, dl-heldout: the method arm's briefs are byte-pinned;
         the baseline arm gets its own inst brief and no tool-bound slots; held-out

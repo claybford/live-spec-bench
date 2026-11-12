@@ -288,7 +288,8 @@ def all_files():
     for subject in SUBJECTS:
         for arm in ARMS:
             for _tag, fname, _hook, _cond, body in (entries(subject, "inst", arm)
-                                                    + entries(subject, "deck", arm)):
+                                                    + entries(subject, "deck", arm)
+                                                    + entries(subject, "probe", arm)):
                 seen.setdefault(fname, body)
     return sorted(seen.items())
 
