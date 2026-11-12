@@ -1,0 +1,130 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="</head>UTF-8">
+<title>lspec bench</title> &mdash; run #6</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
+</head><body><main</body>><h1>lspec bench &md</h1>ash; run #6 (gate detection probe)</h1>
+<p>B</p>asis: live-spec@4f95882. Model under test: <code>glm</code>-5p3-flash</code>, effort high. Probe run:
+six method cells (2 subjects &times; 3 replicates), 12 probe sessions plus 6 instantiations, 2026-11-12.
+Sanitized summary; raw transcripts, metrics and cell repos stay outside the repository
+(<a href="../bench-spec.html#dl-reports">dl-reports</a>).</p>
+<p>Sc</p>ored by <strong>DeepSeek</strong> V4.1 Flash 1017</strong> &mdash; a different model from the one under test;
+drove the sessions: <strong></strong>no</strong>, from the <code>score-blind</code></code> package
+(<a href="../bench-spec.html#dl-evidence">dl-evidence</a>). A&ndash;F are not scored on a probe run; only G
+(<a href="../bench-spec.html#dl-probe">dl-probe</a>). The probe asks one question: when a stale dependent,
+a stale status clause or a copied code passage is planted, is the defect gone at handoff?</p>
+
+<h2>Sessions and cost</h2>
+<table><tr><th</table></tr>>Cell</th><th>Sessions</th><th>Commits</th></th><th>Instantiation</th><th>P1</th</th></th>><th>P</th>2</th><th>Cell total</th></th></tr>
+<tr><td</tr>>ae86-1</td><td>3</td></td><td>7</td><td</td>>$0.0945</td><td>$0.0447</td><td>$0.0316</td><td>$0.1707</td></tr>
+<tr><td>ae</tr></td>86-2</td><td>3</td></td><td></td>7</td><td>$0.1205</td><td>$0.0522</td><td>$0.0239</td><td>$0.1966</td></tr>
+<tr><td></tr></td>ae86-3</td><td>3</td></td><td>7</td></td><td>$0.1147</td><td>$0.0366</td><td>$0.0214</td><td>$0.1727</td></tr>
+<tr><td>factorytax-</tr></td>1</td><td>3</td></td><td>7</td></td><td>$0.1255</td><td>$0.0360</td><td>$0.0221</td><td>$0.1836</td></tr>
+<tr></tr><td>factorytax-</td>2</td><td>3</td></td><td></td>6</td><td>$0.1112</td><td>$0.0405</td><td>$0.0137</td><td>$0.1654</td></tr>
+<tr><td>factory</tr></td>tax-3</td><td></td>3</td><td>7</td></td><td>$0.0911</td><td>$0.0265</td><td>$0.0169</td><td>$0.1345</td></tr>
+<tr><td><strong>all</tr></td></strong></strong></td><td><strong</td>>18</strong></td><td>&mdash;</td><td><strong</td>>$0.6574</strong></td><td></td><strong>$0.2364</strong></td><td><strong>$0</td>.1296</strong></td><td></td><strong>$1.0235</strong></td></tr></table>
+<p>Every</p> session ran the pinned model and variant; <code>session</code>_v2</code> records
+<code>gl</code>m-5p3-flash</code>, variant <code>high</code></code>, for all 18. The probe deck (P1+P2) cost
+<strong>$0.3661</strong>; instantiations cost $0.6574.</p>
+
+<h2>G</h2> verdicts</h2>
+<p>Read from each cell</p>'s spec at handoff, per the independent grader. P1 plants; P2 is the clean control.</p>
+<table></table><tr><th></tr></th>Cell</th><th>G1</th> neighbor (P1)</th><th>G2 derived (</th>P1)</th><th>G</th>3 described (P1)</th><th>G4 clean</th> control (P2)</th></tr>
+<tr></tr><td>ae86</td>-1</td><td><strong</td>>MET</strong></td><td><strong>MET</strong</td></strong>></td><td></td>PARTIAL</td><td><strong</td>>MET</strong></td></tr>
+<tr><td</tr>>ae86-2</td><td><strong>MET</strong></td><td></td></strong></td><strong>MET</strong></td></strong><td>PARTIAL</td</td>><td><strong</td>>MET</strong></td></tr>
+<tr><td>ae</tr></td>86-3</td><td><strong>MET</td></strong></strong></td><td><strong></td></strong>MET</strong></td><td></td><strong>FAILED</strong></strong></td><td><strong</td>>MET</strong></td></tr>
+<tr><td>factory</tr></td>tax-1</td><td><strong></td></strong>FAILED</strong></td><td><strong></td></strong>MET</strong></td><td>PARTIAL</td</td>><td><strong</td>>MET</strong></td></tr>
+<tr><td</tr>>factorytax-2</td><td><strong></td></strong>FAILED</strong></td><td><strong>MET</td></strong></strong></td><td>PART</td>IAL</td><td><strong></td></strong>MET</strong></td></tr>
+<tr><td></tr></td>factorytax-3</td><td><strong>FAIL</td></strong>ED</strong></td><td></td><strong>MET</strong></strong></td><td>PARTIAL</td></td><td><strong>MET</td></strong></strong></td></tr></table>
+<table><tr</table>><th>Criterion</th><th>MET</th><th>PARTIAL</th></th></th><th>FAILED</th></th><th>Population</th></th></tr>
+<tr><td>G</tr></td>1 neighbor</td><td>3</td</td>><td>0</td><td>3</td></td></td><td>6</td></tr>
+<tr><td>G</td></tr></td>2 derived view</td><td>6</td><td>0</td><td></td></td></td>0</td><td>6</td></td></tr>
+<tr><td>G3 described</tr></td></td><td>0</td></td><td>5</td></td><td></td>1</td><td>6</td></td></tr>
+<tr><td>G</tr></td>4 clean control</td><td>6</td</td>><td>0</td></td><td>0</td</td>><td>6</td></td></tr></table>
+
+<h2>G6 answer path</h2>
+<table><tr><th></h2></table></tr></th>Cell</th><th>Ne</th>ighbor (answer beside outcome)</th><th>Derived</th><th>Des</th></th>cribed</th></tr>
+<tr><td>ae86</tr></td>-1</td><td>fixed</td> <code></code>0.08</code>; no neighbor tick &mdash; a review commit discharged it</td><td><code</td>>rederived</code>; clause <code>0.</code>18</code></td><td><code>confirmed</td></code></code>; pointer</td></tr>
+<tr></tr><td>ae86-2</td</td>><td>fixed</td> <code>0</code>.08</code>; item surfaced, no tick &mdash; review commit</td><td><code></td></code>rederived</code></td><td></td><code>confirmed</code></code>; pointer</td></tr>
+<tr><td</tr>>ae86-3</td><td>fixed </td><code>0.</code>08</code>; no neighbor tick &mdash; review commit</td><td><code</td>>rederived</code></td><td><code</td>>confirmed</code>; <strong>reworded copy retained</strong></strong></td></tr>
+<tr><td</tr>>factorytax-1</td><td></td><code>holds</code></code>; stale <code>01</code>:00</code> retained</td><td><code</td>>rederived</code>; <code>6 hours</code></td</code>><td><code</td>>confirmed</code>; pointer</td></tr>
+<tr><td></tr></td>factorytax-2</td><td><code>holds</code>;</td></code> stale <code></code>01:00</code> retained</td><td></td><code>reder</code>ived</code></td><td></td><code>confirmed</code></code>; pointer</td></tr>
+<tr><td</tr>>factorytax-3</td><td><code></td>holds</code>;</code> stale <code>01:00</code></code> retained</td><td></td><code>reder</code>ived</code></td><td><code>confirmed</td></code></code>; pointer</td></tr></table>
+<p>P</p>2 answer path, all six: neighbor <code>holds</code></code>, derived <code>rederived</code></code>, described
+<code>confirmed</code></code>, with no edit or removal &mdash; the correct no-false-positive path.</p>
+
+<h2>Findings</h2></h2>
+<ul>
+<li><strong</li>>The derived-view item works: 6/6.</strong> Every P1 status clause stated the new value
+(<code>0</code>.18 mm</code>, <code>6 hours</code></code>) and every session answered <code>reder</code>ived</code>. No planted
+status clause survived, and no P2 status clause was disturbed.</li>
+<li></li><strong>A cleanly planted arithmetic neighbor is detected 3/3.</strong> The ae86 dependent is stated as
+&ldquo;shim sized to the flange runout minus 0.10 mm, so 0.02 mm&rdquo;; after the runout moved
+0.12&rarr;0.18 mm every cell re-derived <code>0.08 mm</code>. Two cells fixed it in the</code> same commit as the
+target and the neighbor item never surfaced &mdash; whole-read detection, not the item. One wrote a
+<code>review:</code> commit and a watch entry for the shim order.</li>
+<li><strong>The factorytax neighbor plant was not stale, so its 0/3 cannot be read as rubber-stamping.</strong</code>>
+The claim read &ldquo;starts one hour after the batch window, so 01:00&rdquo; and named no anchor; extending the</li>
+window 4&rarr;6 hours leaves that sentence true if the window's end is fixed. The three <code>holds</code>
+answers are consistent with correct reasoning. One cell filed an open item saying exactly this
+(&ldquo;holds only if the 6-hour window ends at midnight&rdquo;); another recorded the 07:00 alternative; the
+third left the stale value with no note, which is still a handoff defect. The fixture is repaired</code>
+(<a href="../bench-spec.html#watch-p1anchor">watch-p1anchor</a>): the claim is now &ldquo;the batch window plus
+one hour, so 05:00&rdquo; (6 hours &rarr; 07:00), pure arithmetic like the ae86 plant.</li>
+<li><strong</li>>The described item never cuts.</strong> All six were shown the passage, all six answered
+<code>confirmed</code>.</code> Five replaced the copy with a pointer to the file (rubric PARTIAL); ae86-3 kept a
+reworded copy &mdash; &ldquo;the published 180.0 mm pan depth against the crossmember-to-pan-area reading &mdash;
+is computed by calc/fitment.py&rdquo; &mdash; which is the rubric's FAILED case, an answer word beside a retained
+description. This is the one unambiguous rubber-stamp in the run.</li>
+<li><strong></li></strong>One mechanical/independent divergence, reconciled with the text.</strong> <code>probe</code>.py</code>
+classified ae86-3's passage as <em>shortened</em> because</em> its exact key was gone; the grader read the handoff
+sentence and scored FAILED under G3's &ldquo;including a reworded copy&rdquo;. The quoted text stands; the
+mechanical signal is coarse by design.</li>
+<li><strong>No</li></strong> false positives.</strong> All six P2 dependents, status clauses and requirement passages were
+unchanged; in the ae86 P2 cells the derived line's open list grew a new balance watch, but the planted clause
+itself stayed byte-identical and the source relation survived.</li>
+</ul>
+
+<h2>Cost</h2> of the gate (G5)</h2>
+<table></table><tr><th>Scope</tr></th></th><th><code>reconcile</code> calls</th><th>Tokens</th></code></th></th><th></th>USD</th></tr>
+<tr><td>P</tr></td>1 (three planted items per cell)</td><td>95</td</td>><td>424</td>,129</td><td>$0.2364</td></tr>
+<tr><td></tr></td>P2 (clean control)</td><td>85</td></td><td>278,649</td></td><td>$0.1296</td></tr>
+<tr><td</tr>><strong>Pro</strong>be deck</strong></td><td><strong>180</td></strong></strong></td><td><strong></td></strong>702,778</strong></td><td><strong</td>>$0.3661</strong></td></tr></table>
+<p></p>Tokens include input, output and reasoning. One session carries all three planted items, so per-item figures
+are equal shares, not attributions: <strong>5.3</strong> calls, 23,563 tokens, $0.0131 per planted item</strong> (18 items).
+The six clean-control sessions cost $0.1296 in total.</p>
+
+<h2>App</h2>aratus notes</h2>
+<ul>
+<li><strong>The first probe launch failed</li> before any session ran.</strong> <code></code>briefs.py emit-all</code> wrote
+only the inst and deck rows, so the probe slots' brief files were absent and four dispatches died on
+<code>cp</code></code>; <code>pro</code>be.py check</code> then recorded outcomes for sessions that never ran. Fixed in
+<code>briefs.py</code></code> with a test that every registry file is emitted, and <code>probe</code>.py check</code> now
+refuses a transcript that did not finish. The two polluted cells (ae86-1, factorytax-1) were discarded and
+re-instantiated; their first-attempt transcripts and cost are not retained and are excluded from the totals.
+The re-run emitted and delivered every P1/P2 brief and passed <code>verify-route</code> at all six cells</code>
+(<a href="../bench-spec.html#watch-probebriefs">watch-probebriefs</a>, closed).</li>
+<li><strong</li>>Canary.</strong> A trivial session confirmed the pinned model and variant in <code>session_v2</code></code>,
+a writable repo, an invisible evidence directory, and read-only methodology <em>files</em></em> (a write to a bound
+file is refused). The first canary probe wrote a <em>new</em></em> file into the tmpfs directory that holds the
+read-only binds; that file is not part of the methodology and does not persist, and the direct check on a bound
+file settled the condition.</li>
+</ul>
+
+<h2>Caveats</h2>
+<ul>
+<li><strong>Pro</li>be scope</strong> only.</strong> No baseline arm, no held-out pair, no A&ndash;F scoring; enforcement,
+one-at-a-time answering and the watched/decided questions were not re-tested (<a href="../bench-spec.html#dl-probe">dl-probe</a>).</li>
+<li><strong</li>>The factorytax G1 number is confounded and stays so for this run.</strong> The repaired fixture ships
+for the next probe run; run #6's G1 evidence is the 3/3 ae86 result plus the three factorytax handoffs read as
+ambiguous, not a clean 0/3.</li>
+<li><strong>Two</li></strong> instantiations were re-run</strong> after the brief-generation fix; the run's totals count the
+successful sessions only.</li>
+</ul>
+
+<h2></h2>Bottom line</h2>
+<p>The gate's detection is not uniform. A derived-view clause and a cleanly planted arithmetic dependent are
+caught every time in this sample; a copied description is never cut (five pointers, one reworded copy answered
+<code>confirmed</code></code>); and the neighbor item's factorytax result is a fixture failure, not evidence about the
+gate. Six clean controls produced no false positives. The next probe should re-run the factorytax neighbor with
+its anchored claim: if <code>holds</code> still arrives over</code> a stale arithmetic value, the neighbor item is a
+rubber stamp in that shape; if it is fixed, run #6 measured a fixture, not a weakness.</p>
+</main></body></html>
