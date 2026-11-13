@@ -456,6 +456,91 @@ def classify(html, subject, tag, ans):
     return n_out, d_out, p_out
 
 
+def transcript_timeline(path):
+    """(first event ms, last event ms, cumulative step tokens by finish time).
+    Step metrics, not the final session sum, place tokens before a commit."""
+    first = last = None
+    finishes = []
+    total = 0
+    try:
+        fh = open(path, errors="replace")
+    except FileNotFoundError:
+        return None, None, []
+    with fh:
+        for line in fh:
+            if not line.strip().startswith("{"):
+                continue
+            j = json.loads(line)
+            ts = j.get("timestamp")
+            if ts is None:
+                continue
+            if first is None:
+                first = ts
+            last = ts
+            if j.get("type") in ("step_finish", "step-finish"):
+                t = j.get("part", {}).get("tokens") or {}
+                total += sum(
+                    v or 0
+                    for k, v in t.items()
+                    if k in ("input", "output", "reasoning")
+                )
+                finishes.append((ts, total))
+    return first, last, finishes
+
+
+def completion(repo, spec_name, path, subject):
+    """Time and tokens to the first acceptable and first all-MET P1 commit,
+    the bench's semantic efficiency axis (rubric G7). Acceptable still requires
+    the target's new value, no neighbor/derived failure, and a cut or pointer,
+    never a session that stops at an assent word."""
+    start, end, finishes = transcript_timeline(path)
+    out = {"session_seconds": None, "first_acceptable": None, "first_strict": None}
+    if start is None:
+        return out
+    if end is not None:
+        out["session_seconds"] = round((end - start) / 1000, 1)
+    for line in git(repo, "log", "--format=%H %ct %s", "--reverse").stdout.splitlines():
+        sha, stamp, log_subject = line.split(" ", 2)
+        stamp = int(stamp)
+        if stamp * 1000 < start - 1000 or stamp * 1000 > end + 1000:
+            continue
+        if log_subject.startswith("probe: setup"):
+            continue
+        html = git(repo, "show", f"{sha}:{spec_name}", check=False).stdout
+        if not html:
+            continue
+        fx = FIXTURES[subject]["P1"]
+        n, d, p = classify(html, subject, "P1", {})
+        target = text(html, fx["target"][0]) or ""
+        target_ok = fx["status_new"] in target
+        acceptable = (
+            target_ok
+            and n in ("fixed", "removed")
+            and d in ("fixed", "removed")
+            and p in ("cut", "shortened")
+        )
+        strict = target_ok and n == "fixed" and d == "fixed" and p == "cut"
+        point = commit_point(sha, stamp, start, finishes)
+        if acceptable and out["first_acceptable"] is None:
+            out["first_acceptable"] = point
+        if strict and out["first_strict"] is None:
+            out["first_strict"] = point
+    return out
+
+
+def commit_point(sha, stamp, start, finishes):
+    """Tokens whose step finished before this commit, not just session total."""
+    tokens = 0
+    for ts, total in finishes:
+        if ts <= stamp * 1000 + 999:
+            tokens = total
+    return {
+        "commit": sha[:8],
+        "seconds": round(stamp - start / 1000, 1),
+        "tokens": tokens,
+    }
+
+
 def write_result(ev, result):
     p = Path(ev) / "probe-results.jsonl"
     keep = []
@@ -477,7 +562,8 @@ def cmd_check(ev, cell, subject, tag):
     if tag not in TAGS:
         raise SystemExit(f"probe: unknown tag {tag}")
     repo = Path(ev) / "cells" / cell
-    html = main_spec(repo).read_text()
+    spec = main_spec(repo)
+    html = spec.read_text()
     tpath = Path(ev) / "transcripts" / f"{cell}-{tag}.jsonl"
     if not transcript_complete(tpath):
         raise SystemExit(f"probe: {cell}-{tag} transcript incomplete; refusing to record")
@@ -512,6 +598,8 @@ def cmd_check(ev, cell, subject, tag):
         "dirty_before": dirty,
     }
     result.update(metrics(ev, f"{cell}-{tag}"))
+    if tag == "P1":
+        result["completion"] = completion(repo, spec.name, tpath, subject)
     write_result(ev, result)
     print(f"probe: {cell}-{tag} neighbor={n_out} derived={d_out} described={p_out}")
 

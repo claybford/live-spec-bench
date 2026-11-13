@@ -448,7 +448,32 @@ def probe_section(ev):
                  f"<td>{hits} / {cleared} / {miss}</td><td>{assent}</td>"
                  f"<td>{fp} of {len(clean)}</td><td>{calls_n}</td><td>{tokens_n}</td></tr>")
     h.append("</table>")
+    probe_completion(results, h)
     return h
+
+
+def probe_completion(results, h):
+    """Rubric G7: time and tokens to the first acceptable and first all-MET
+    P1 commit. Raw evidence remains outside the report; an uncapped cell that
+    never reaches a correct commit is shown as never, not a cheap success."""
+    rows = [r for r in results if r.get("tag") == "P1" and r.get("completion")]
+    if not rows:
+        return
+    h += ["<h2>Time to correct commit (G7)</h2>",
+          "<p>From the first transcript event to the first commit with the target updated, no "
+          "neighbor/derived failure and the description cut or pointed at its file. A pointer is "
+          "acceptable, not a clean cut. All-MET is stricter: fixed, fixed and cut. Never is uncapped.</p>",
+          "<table><tr><th>Cell</th><th>First acceptable (s / tokens)</th>"
+          "<th>First all-MET (s / tokens)</th><th>Session (s)</th></tr>"]
+    def point(p):
+        if not p:
+            return "never"
+        return f"{p['seconds']:.1f} / {p['tokens']:,}"
+    for r in sorted(rows, key=lambda r: r.get("cell", "")):
+        c = r["completion"]
+        h.append(f"<tr><td>{r.get('cell')}</td><td>{point(c.get('first_acceptable'))}</td>"
+                 f"<td>{point(c.get('first_strict'))}</td><td>{c.get('session_seconds') or '?'}</td></tr>")
+    h.append("</table>")
 
 
 def cmd_skeleton(ev, out):

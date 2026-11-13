@@ -110,6 +110,21 @@ class BenchDriver(unittest.TestCase):
         self.assertIn('ae86-P1.txt', os.listdir(d))
         self.assertIn('factorytax-P2.txt', os.listdir(d))
 
+    def test_probe_report_has_time_to_correct_commit(self):
+        """G7: acceptable and all-MET commits are not collapsed into session totals."""
+        sys.path.insert(0, os.path.dirname(self.BRIEFS))
+        import briefs
+        h = []
+        briefs.probe_completion([{'cell': 'ae86-1', 'tag': 'P1', 'completion': {
+            'session_seconds': 200.0,
+            'first_acceptable': {'seconds': 180.0, 'tokens': 5000},
+            'first_strict': None,
+        }}], h)
+        html_ = ''.join(h)
+        self.assertIn('Time to correct commit (G7)', html_)
+        self.assertIn('180.0 / 5,000', html_)
+        self.assertIn('never', html_)
+
     def test_registry_has_two_arms_and_held_out_slots(self):
         """dl-baseline, dl-heldout: the method arm's briefs are byte-pinned;
         the baseline arm gets its own inst brief and no tool-bound slots; held-out

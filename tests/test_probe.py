@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -242,6 +243,45 @@ class EndToEnd(unittest.TestCase):
         self.assertEqual(result["described"]["outcome"], "cut")
         self.assertEqual(result["calls"], 6)
         self.assertEqual(result["tokens"], 120)
+
+    def test_time_to_first_acceptable_commit(self):
+        """G7: the first correct commit gets its own time and a token cutoff,
+        not the session's total."""
+        probe.cmd_setup(self.ev, "ae86-1", "ae86")
+        probe.cmd_stage(self.ev, "ae86-1", "ae86", "P1")
+        fixed = Path(self.cell, "spec.html").read_text().replace(
+            "runout at 0.12 mm", "runout at 0.18 mm")
+        fixed = fixed.replace("so 0.02 mm", "so 0.08 mm").replace(
+            "pinion flange runout is 0.12 mm", "pinion flange runout is 0.18 mm")
+        fixed = fixed.replace(
+            '<p id="bench-p1-described">calc/fitment.py computes the oil pan depth '
+            "as 180.0 mm and compares it with the crossmember clearance.</p>\n", "")
+        Path(self.cell, "spec.html").write_text(fixed)
+        run(["git", "add", "spec.html"], self.cell)
+        ts = int(time.time()) + 300
+        env = dict(os.environ)
+        env.update({"GIT_AUTHOR_DATE": f"{ts} +0000", "GIT_COMMITTER_DATE": f"{ts} +0000"})
+        subprocess.run(["git", "-c", "user.email=a@b", "-c", "user.name=a",
+                        "commit", "-qm", "fix: the planted dependent"],
+                       cwd=self.cell, check=True, env=env)
+        start = (ts - 30) * 1000
+        events = [
+            {"type": "step_start", "timestamp": start},
+            {"type": "step_finish", "timestamp": start + 25000,
+             "part": {"tokens": {"input": 100, "output": 20, "reasoning": 28}}},
+            {"type": "step_finish", "timestamp": (ts + 2) * 1000,
+             "part": {"tokens": {"input": 70, "output": 10, "reasoning": 0}}},
+            {"type": "text", "timestamp": (ts + 3) * 1000, "part": {"text": "done"}},
+        ]
+        path = Path(self.ev, "transcripts", "ae86-1-P1.jsonl")
+        with open(path, "w") as f:
+            for event in events:
+                f.write(json.dumps(event) + "\n")
+        got = probe.completion(self.cell, "spec.html", path, "ae86")
+        self.assertEqual(got["session_seconds"], 33.0)
+        self.assertEqual(got["first_acceptable"]["seconds"], 30.0)
+        self.assertEqual(got["first_acceptable"]["tokens"], 148)
+        self.assertEqual(got["first_strict"], got["first_acceptable"])
 
 
 class NoTranscript(unittest.TestCase):
