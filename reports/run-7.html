@@ -1,0 +1,102 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>lspec bench &mdash; run #7</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
+</head><body><main><h1>lspec bench &mdash; run #7 (time and tokens to a correct commit)</h1>
+<p>Basis: live-spec@4f95882. Model under test: <code>glm-5p3-flash</code>, effort high. Six method cells,
+12 probe sessions plus 6 instantiations, 2026-11-12. Sanitized summary; raw transcripts, metrics and cell repos
+stay outside the repository (<a href="../bench-spec.html#dl-reports">dl-reports</a>).</p>
+<p>Scored by <strong>DeepSeek V4.1 Flash 1017</strong>, which did not drive the sessions, from
+<code>score-blind</code>'s package (<a href="../bench-spec.html#dl-evidence">dl-evidence</a>). G7 is reported
+from the pre-registered mechanical analysis in <code>probe.py</code>, with the independent grader reproducing
+its commit-level state evidence. Costs are secondary to whether and when the document became correct
+(<a href="../bench-spec.html#goal">goal</a>, <a href="../bench-spec.html#dl-efficiency">dl-efficiency</a>).</p>
+
+<h2>Time and tokens to a correct commit (G7)</h2>
+<p>Acceptable means the target was updated, no neighbor or derived defect survived, and the copied description
+was cut or replaced with a real pointer. All-MET is stricter: fixed neighbor, fixed status clause, and a clean
+cut. Zeros are never credited. Cells that never reach an acceptable state are uncapped.</p>
+<table><tr><th>Cell</th><th>First acceptable</th><th>Step tokens</th><th>First all-MET</th><th>Whole session</th></tr>
+<tr><td>ae86-1</td><td>133.8 s</td><td>80,194</td><td>never</td><td>156.4 s</td></tr>
+<tr><td>ae86-2</td><td>223.7 s</td><td>113,599</td><td>never</td><td>235.3 s</td></tr>
+<tr><td>ae86-3</td><td>252.0 s</td><td>115,209</td><td>never</td><td>303.4 s</td></tr>
+<tr><td>factorytax-1</td><td>101.8 s</td><td>30,608</td><td>never</td><td>121.4 s</td></tr>
+<tr><td>factorytax-2</td><td>165.6 s</td><td>38,776</td><td>never</td><td>196.9 s</td></tr>
+<tr><td>factorytax-3</td><td><strong>never</strong> &mdash; copy kept</td><td>uncapped</td><td>never</td><td>212.7 s</td></tr></table>
+<p>5/6 cells reached acceptable state; among those, mean time was <strong>175.4 s</strong> and mean step tokens
+<strong>75,677</strong> (range 30,608&ndash;115,209). The six P1 sessions occupied 1,226 s of cell time in
+aggregate. No session reached an all-MET state. This is the optimization baseline: a cell's time and token
+cost are counted toward a correct commit, not toward a session that merely returned.</p>
+
+<h2>Correctness at handoff (G1&ndash;G4)</h2>
+<table><tr><th>Cell</th><th>G1 neighbor</th><th>G2 derived</th><th>G3 described</th><th>G4 clean control</th></tr>
+<tr><td>ae86-1</td><td>MET</td><td>MET</td><td>PARTIAL</td><td>MET</td></tr>
+<tr><td>ae86-2</td><td>MET</td><td>MET</td><td>PARTIAL</td><td>MET</td></tr>
+<tr><td>ae86-3</td><td>MET</td><td>MET</td><td>PARTIAL</td><td><strong>FAILED</strong></td></tr>
+<tr><td>factorytax-1</td><td>MET</td><td>MET</td><td>PARTIAL</td><td>MET</td></tr>
+<tr><td>factorytax-2</td><td>MET</td><td>MET</td><td>PARTIAL</td><td>MET</td></tr>
+<tr><td>factorytax-3</td><td>MET</td><td>MET</td><td><strong>FAILED</strong></td><td>MET</td></tr></table>
+<table><tr><th>Criterion</th><th>MET</th><th>PARTIAL</th><th>FAILED</th></tr>
+<tr><td>G1 neighbor</td><td>6</td><td>0</td><td>0</td></tr>
+<tr><td>G2 derived view</td><td>6</td><td>0</td><td>0</td></tr>
+<tr><td>G3 described</td><td>0</td><td>5</td><td>1</td></tr>
+<tr><td>G4 clean control</td><td>5</td><td>0</td><td>1</td></tr></table>
+
+<h2>What changed from run #6</h2>
+<ul>
+<li><strong>The repaired factorytax neighbor was detected 3/3.</strong> All three plants now read
+&ldquo;the batch window plus one hour, so 07:00&rdquo; after a 4&rarr;6 hour update. The three run-#6
+<code>holds</code> answers therefore measured an ambiguous fixture, not a weak neighbor item
+(<a href="../bench-spec.html#watch-p1anchor">watch-p1anchor</a>, closed). Across the six cells, five
+neighbors were fixed before the item surfaced; factorytax-3 surfaced the stale <code>05:00</code> and fixed it.</li>
+<li><strong>Derived-view detection is 12/12 across both probe runs.</strong> Every planted status clause was
+updated and answered <code>rederived</code>.</li>
+<li><strong>Described detection repeated the same shape.</strong> 0 MET / 5 pointers / 1 FAILED in both runs.
+Run #7's failure is verbatim: the factorytax-3 spec at handoff still reads
+&ldquo;factorytax/brackets.py defines six annual withholding brackets and subtracts the personal allowance before
+applying them.&rdquo; The transcript recorded <code>confirmed</code>, twice. That is an answer word beside a
+retained copy.</li>
+<li><strong>A new clean-control failure is broader than the three instrumented shapes.</strong> ae86-3's P2 commit
+removed <code>&lt;h2 id=&quot;log&quot;&gt;Decision Log&lt;/h2&gt;</code> while leaving the P2 neighbor, status
+clause and requirement passage intact. No tick surfaced the removal. This is precisely the semantic risk the
+metric counts: finishing with a working tree is not finishing the documentation work
+(<a href="../bench-spec.html#goal">goal</a>).</li>
+</ul>
+
+<h2>Efficiency readings, not a cost target</h2>
+<table><tr><th>Measure</th><th>P1</th><th>P2</th><th>Probe deck</th></tr>
+<tr><td>Harness-counted <code>reconcile</code> calls (help excluded)</td><td>100</td><td>72</td><td>172</td></tr>
+<tr><td>Session tokens</td><td>511,286</td><td>321,528</td><td>832,814</td></tr>
+<tr><td>USD (reported, not the objective)</td><td>$0.2175</td><td>$0.1241</td><td>$0.3416</td></tr></table>
+<p>Cell totals including instantiation range $0.1457&ndash;$0.2031; run total is $1.0353. These numbers do not
+compare a cheaper gate here: run #7 exercises the same gate and artifact basis as run #6. They establish what
+one planted documentation update costs before any alternative is admitted, and never substitute for G1&ndash;G4.</p>
+
+<h2>Per-cell sessions</h2>
+<table><tr><th>Cell</th><th>Commits</th><th>Sessions</th><th>Instantiation / P1 / P2 USD</th><th>Cell USD</th></tr>
+<tr><td>ae86-1</td><td>6</td><td>3</td><td>0.1353 / 0.0296 / 0.0207</td><td>0.1856</td></tr>
+<tr><td>ae86-2</td><td>7</td><td>3</td><td>0.0954 / 0.0470 / 0.0230</td><td>0.1655</td></tr>
+<tr><td>ae86-3</td><td>7</td><td>3</td><td>0.1119 / 0.0494 / 0.0206</td><td>0.1819</td></tr>
+<tr><td>factorytax-1</td><td>9</td><td>3</td><td>0.1553 / 0.0235 / 0.0244</td><td>0.2031</td></tr>
+<tr><td>factorytax-2</td><td>8</td><td>3</td><td>0.0892 / 0.0326 / 0.0238</td><td>0.1457</td></tr>
+<tr><td>factorytax-3</td><td>7</td><td>3</td><td>0.1067 / 0.0353 / 0.0115</td><td>0.1535</td></tr></table>
+
+<h2>Apparatus and limits</h2>
+<ul>
+<li>The canary again verified the pinned model and variant, a writable repo, an invisible evidence directory,
+and a refusal to modify a bound methodology file. Every metrics record reports <code>glm-5p3-flash</code> high.</li>
+<li>After the run, the working live-spec checkout had unrelated uncommitted edits. The packaging driver correctly
+refused it; scoring used a clean clone checked out to the recorded <code>4f95882</code>, not a hand correction of
+that working tree. No session or cell was changed.</li>
+<li>G7 is a first-correct-commit measure for the planted work, not proof of global semantic correctness.
+The ae86-3 heading removal shows why a clean control and independent scoring remain necessary.</li>
+<li>A pointer is an acceptable state for G7 and PARTIAL for G3, not a silently promoted MET. All-MET remains
+separate so a future alternative cannot trade detection away for a faster answer.</li>
+</ul>
+
+<h2>Bottom line</h2>
+<p>The neighbor and derived-view items catch their defects on valid plants; the described item still does not
+produce a clean cut, and one clean control dropped an unrelated decision heading. The useful optimization is
+now measurable: reduce elapsed time and repeated transcript tokens <em>to the first acceptable correct commit</em>,
+with uncapped failures left uncapped. The next comparison belongs on a candidate gate artifact, measured against
+run #7, not on treating fewer calls as success (<a href="../bench-spec.html#dl-efficiency">dl-efficiency</a>).</p>
+</main></body></html>
