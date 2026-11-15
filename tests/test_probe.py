@@ -136,6 +136,24 @@ class Classify(unittest.TestCase):
 
 
 class Answers(unittest.TestCase):
+    def test_described_answer_names_the_planted_passage(self):
+        """G6: another described item's answer must not stand in for the plant."""
+        events = [
+            ("--next", "ITEM 4 of 7 [described] how is spec.html#other-passage disposed?\n  token: aa111111"),
+            ("--tick aa111111 --answer retained", "answered"),
+            ("--next", "ITEM 5 of 7 [described] how is spec.html#bench-p1-described disposed?\n  token: dd222222"),
+            ("--tick dd222222 --answer pointed", "answered"),
+        ]
+        got = probe.answers(events, "bench-p1-neighbor", "bench-p1-described")
+        self.assertEqual(got["described"], {"surfaced": True, "answer": "pointed"})
+        cut = [
+            ("--next", "ITEM 4 of 7 [described] how is spec.html#bench-p1-described disposed?\n  token: ee333333"),
+            ("--next", "ITEM 5 of 7 [described] how is spec.html#other-passage disposed?\n  token: ff444444"),
+            ("--tick ff444444 --answer retained", "answered"),
+        ]
+        got = probe.answers(cut, "bench-p1-neighbor", "bench-p1-described")
+        self.assertEqual(got["described"], {"surfaced": True, "answer": None})
+
     def test_answer_pairs_with_its_item_token(self):
         events = [
             (
@@ -152,7 +170,7 @@ class Answers(unittest.TestCase):
                 "answered",
             ),
         ]
-        got = probe.answers(events, "bench-p1-neighbor")
+        got = probe.answers(events, "bench-p1-neighbor", "bench-p1-described")
         self.assertEqual(got["neighbor"]["answer"], "holds")
         self.assertEqual(got["derived"]["answer"], "rederived")
         self.assertFalse(got["described"]["surfaced"])

@@ -369,7 +369,7 @@ def transcript_complete(path):
     return False
 
 
-def answers(events, neighbor_id):
+def answers(events, neighbor_id, passage_id):
     out = {
         "neighbor": {"surfaced": False, "answer": None},
         "derived": {"surfaced": False, "answer": None},
@@ -380,8 +380,10 @@ def answers(events, neighbor_id):
             kind, title = m.group(1), m.group(2)
             if kind == "neighbor" and neighbor_id in title:
                 ident = "neighbor"
-            elif kind in ("derived", "described"):
-                ident = kind
+            elif kind == "described" and passage_id in title:
+                ident = "described"
+            elif kind == "derived":
+                ident = "derived"
             else:
                 continue
             # Later occurrences replace earlier ones: an item the candidate
@@ -626,7 +628,11 @@ def cmd_check(ev, cell, subject, tag):
     if not transcript_complete(tpath):
         raise SystemExit(f"probe: {cell}-{tag} transcript incomplete; refusing to record")
     events = transcript_events(tpath)
-    ans = answers(events, FIXTURES[subject][tag]["neighbor"][0])
+    ans = answers(
+        events,
+        FIXTURES[subject][tag]["neighbor"][0],
+        FIXTURES[subject][tag]["passage"][0],
+    )
     n_out, d_out, p_out = classify(html, subject, tag, ans)
     state = Path(ev) / "probe-state" / f"{cell}-{tag}.json"
     dirty = (
