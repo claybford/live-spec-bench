@@ -530,6 +530,21 @@ def acceptable(target_ok, n, d, p):
     )
 
 
+def uncapped_reason(target_ok, n, d, p):
+    """Why a P1 cell never reached an acceptable state; never a cheap zero."""
+    if not target_ok:
+        return "target not updated"
+    if d not in ("fixed", "removed"):
+        return "derived stale"
+    if n not in ("fixed", "removed"):
+        return "neighbor stale"
+    if p == "kept":
+        return "copy kept"
+    if p == "reworded":
+        return "copy reworded"
+    return "not acceptable"
+
+
 def completion(repo, spec_name, path, subject):
     """Time and tokens to the first acceptable and first all-MET P1 commit,
     the bench's semantic efficiency axis (rubric G7). Acceptable still requires
@@ -537,6 +552,7 @@ def completion(repo, spec_name, path, subject):
     never a session that stops at an assent word."""
     start, end, finishes = transcript_timeline(path)
     out = {"session_seconds": None, "first_acceptable": None, "first_strict": None}
+    last = None
     if start is None:
         return out
     if end is not None:
@@ -557,11 +573,16 @@ def completion(repo, spec_name, path, subject):
         target_ok = fx["status_new"] in target
         ok = acceptable(target_ok, n, d, p)
         strict = target_ok and n == "fixed" and d == "fixed" and p == "cut"
+        last = (target_ok, n, d, p)
         point = commit_point(sha, stamp, start, finishes)
         if ok and out["first_acceptable"] is None:
             out["first_acceptable"] = point
         if strict and out["first_strict"] is None:
             out["first_strict"] = point
+    if out["first_acceptable"] is None:
+        out["uncapped_reason"] = (
+            uncapped_reason(*last) if last else "no commit"
+        )
     return out
 
 

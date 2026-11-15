@@ -484,7 +484,10 @@ def probe_completion(results, h):
         c = r["completion"]
         survived = c.get("survived")
         survives = "yes" if survived else ("no" if survived is False else "?")
-        h.append(f"<tr><td>{r.get('cell')}</td><td>{point(c.get('first_acceptable'))}</td>"
+        first = point(c.get("first_acceptable"))
+        if first == "never" and c.get("uncapped_reason"):
+            first = f"never &mdash; {c['uncapped_reason']}"
+        h.append(f"<tr><td>{r.get('cell')}</td><td>{first}</td>"
                  f"<td>{point(c.get('first_strict'))}</td><td>{c.get('session_seconds') or '?'}</td>"
                  f"<td>{survives}</td></tr>")
     h.append("</table>")

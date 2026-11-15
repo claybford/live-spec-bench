@@ -57,6 +57,14 @@ class Fixtures(unittest.TestCase):
         self.assertLess(html.index('id="x"'), html.index("</main>"))
 
 
+class Uncapped(unittest.TestCase):
+    def test_reason_names_the_retained_copy(self):
+        self.assertEqual(probe.uncapped_reason(True, "fixed", "fixed", "kept"), "copy kept")
+        self.assertEqual(probe.uncapped_reason(True, "fixed", "fixed", "reworded"), "copy reworded")
+        self.assertEqual(probe.uncapped_reason(True, "stale", "fixed", "cut"), "neighbor stale")
+        self.assertEqual(probe.uncapped_reason(False, "fixed", "fixed", "cut"), "target not updated")
+
+
 class Core(unittest.TestCase):
     def test_core_section_removal_is_reported(self):
         """run #7 ae86-3: the clean control removed #log and no check saw it."""
