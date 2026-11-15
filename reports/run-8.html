@@ -1,0 +1,98 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>lspec bench &mdash; run #8</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.css">
+</head><body><main><h1>lspec bench &mdash; run #8 (the described item cuts)</h1>
+<p>Basis: live-spec@47fba1a, which carries <code>ce8dcfa</code>'s per-passage disposition and required core-part check. Model under test:
+<code>glm-5p3-flash</code>, effort high. Six method cells, 12 probe sessions plus 6 instantiations, 2026-11-15.
+Sanitized summary; raw transcripts, metrics and cell repos stay outside the repository
+(<a href="../bench-spec.html#dl-reports">dl-reports</a>).</p>
+<p>Scored by <strong>DeepSeek V4.1 Flash 1017</strong> in a session that did not drive the run, from
+<code>score-blind</code>'s package (<a href="../bench-spec.html#dl-evidence">dl-evidence</a>). G7 is the pre-registered
+mechanical analysis in <code>probe.py</code>, with the grader reproducing every commit-level state.</p>
+
+<h2>Correctness at handoff (G1&ndash;G4)</h2>
+<table><tr><th>Cell</th><th>G1 neighbor</th><th>G2 derived</th><th>G3 described</th><th>G4 clean control</th></tr>
+<tr><td>ae86-1</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>ae86-2</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>ae86-3</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>factorytax-1</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>factorytax-2</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr>
+<tr><td>factorytax-3</td><td>MET</td><td>MET</td><td>MET</td><td>MET</td></tr></table>
+<p>G1 6 MET, G2 6 MET, G3 6 MET, G4 6 MET; no PARTIAL or FAILED. Every planted dependent now reads its recomputed value
+(<code>0.08 mm</code>; <code>07:00</code>), every planted status clause states the new one (<code>0.18 mm</code>; <code>6 hours</code>),
+and every copied passage is absent at handoff.</p>
+
+<h2>What changed from run #7</h2>
+<ul>
+<li><strong>The described item cuts.</strong> Across runs #6 and #7 the same planted copy was 0 MET, 10 pointers and 2 reworded
+copies answered <code>confirmed</code>. Here the <code>described</code> item naming the planted passage surfaced in all six P1
+sessions; each session cut the passage and re-ran <code>reconcile</code>, so no tick was recorded (&ldquo;a deleted passage is
+not asked&rdquo;). No reworded copy and no <code>confirmed</code> beside a retained copy.</li>
+<li><strong>The clean control holds.</strong> Run #7's ae86-3 removed <code>#log</code> with no check seeing it. This basis's
+core-part gate refused that shape, and the probe's new core check found every required section intact in all six P2 cells.</li>
+<li><strong>Every cell reached all-MET.</strong> First acceptable and first all-MET are the same commit in all six cells; no
+cell is uncapped (run #7: 5/6 acceptable, 1 uncapped, 0 all-MET).</li>
+</ul>
+
+<h2>Time and tokens to a correct commit (G7)</h2>
+<table><tr><th>Cell</th><th>First acceptable</th><th>Step tokens</th><th>First all-MET</th><th>Survives to handoff</th><th>Whole session</th></tr>
+<tr><td>ae86-1</td><td>111.2 s</td><td>67,186</td><td>same commit</td><td>yes</td><td>126.2 s</td></tr>
+<tr><td>ae86-2</td><td>162.3 s</td><td>52,955</td><td>same commit</td><td>yes</td><td>177.2 s</td></tr>
+<tr><td>ae86-3</td><td>233.4 s</td><td>76,436</td><td>same commit</td><td>yes</td><td>249.6 s</td></tr>
+<tr><td>factorytax-1</td><td>113.3 s</td><td>42,339</td><td>same commit</td><td>yes</td><td>127.6 s</td></tr>
+<tr><td>factorytax-2</td><td>81.6 s</td><td>32,985</td><td>same commit</td><td>yes</td><td>103.1 s</td></tr>
+<tr><td>factorytax-3</td><td>78.5 s</td><td>36,454</td><td>same commit</td><td>yes</td><td>94.5 s</td></tr></table>
+<p>Six of six cells, mean <strong>130.0 s</strong> and <strong>51,392 step tokens</strong>, median 112.3 s (range 78.5&ndash;233.4 s,
+32,985&ndash;76,436 tokens). Run #7's comparable mean over its five acceptable cells was 175.4 s and 75,677 tokens, with a sixth
+cell uncapped; every #8 acceptable state survived to handoff.</p>
+
+<h2>Efficiency readings, not a cost target</h2>
+<table><tr><th>Measure</th><th>P1</th><th>P2</th><th>Probe deck</th></tr>
+<tr><td><code>reconcile</code> commands (help excluded)</td><td>100</td><td>76</td><td>176 (178 invocations; two chained)</td></tr>
+<tr><td>Session tokens (in + out + reasoning)</td><td>335,099</td><td>191,791</td><td>526,890</td></tr>
+<tr><td>USD (reported, not the objective)</td><td>$0.2387</td><td>$0.1096</td><td>$0.3483</td></tr></table>
+<p>The deck cost $0.3483 against run #7's $0.3416 (+2%) while session tokens fell 36.7% (832,814&rarr;526,890) and commands
+were 176 against 172. Cost is not the objective (<a href="../bench-spec.html#dl-efficiency">dl-efficiency</a>); the objective is
+the earlier correct commit above. Instantiation cost was $1.2076 (run #7: $0.6938); run total $1.5559 besides the $0.0012 canary.
+The basis's <code>start</code> suggested the upstream upgrade (HEAD had moved to the mirror-update commit), and several
+instantiation transcripts explore <code>hook --help</code>; no probe outcome depends on it.</p>
+
+<h2>Answer path (G6)</h2>
+<table><tr><th>Cell</th><th>Neighbor item</th><th>Derived item</th><th>Described item (planted passage)</th></tr>
+<tr><td>ae86-1</td><td>not surfaced; fixed in the same diff</td><td><code>rederived</code></td><td>surfaced; no tick; cut</td></tr>
+<tr><td>ae86-2</td><td>surfaced; no tick; fixed</td><td><code>rederived</code></td><td>surfaced; no tick; cut</td></tr>
+<tr><td>ae86-3</td><td>surfaced; no tick; fixed</td><td><code>rederived</code></td><td>surfaced; no tick; cut</td></tr>
+<tr><td>factorytax-1</td><td>not surfaced; fixed in the same diff</td><td>not surfaced; fixed in the same commit</td><td>surfaced; no tick; cut</td></tr>
+<tr><td>factorytax-2</td><td>not surfaced; fixed in the same diff</td><td><code>rederived</code></td><td>surfaced; no tick; cut</td></tr>
+<tr><td>factorytax-3</td><td>not surfaced; fixed in the same diff</td><td><code>rederived</code></td><td>surfaced; no tick; cut</td></tr></table>
+<p>The neighbor item surfaced 2/6 and no <code>holds</code> sits beside a stale value; the derived item surfaced 5/6 and was
+answered <code>rederived</code>; the described plant surfaced 6/6 and was cut before any answer. The P2 requirement passage
+surfaced in all six and was kept (<code>retained</code>, unchanged), which is the clean-control path.</p>
+
+<h2>Apparatus and limits</h2>
+<ul>
+<li>The canary confirmed the pinned model and variant, a writable repo, a refused write to the bound methodology file, and an
+invisible evidence directory.</li>
+<li>The first launch died before any session: the inhibitor re-exec handed <code>systemd-inhibit</code> the bare
+<code>driver.sh</code>, which it resolves through PATH. Fixed and relaunched (<a href="../bench-spec.html#watch-reexec">watch-reexec</a>);
+the failed launch ran no session, and the second ran all 18.</li>
+<li>Scoring exposed a probe defect: <code>answers()</code> let another described item's answer stand in for the plant's. The
+run's evidence was re-checked with the fixture passage id (no session re-run), and the G6 table pairs the plant only
+(<a href="../bench-spec.html#watch-answerpair">watch-answerpair</a>).</li>
+<li>The planted passage was staged uncommitted and cut in the working tree; it appears in no commit. The handoff spec is the
+authority (rubric G).</li>
+<li>The P2 sessions legitimately updated their target values (ae86 2.5&rarr;1.8 g-mm; factorytax 90&rarr;120 days); the planted
+dependent, status clause and requirement passage stayed byte-identical, and all five core sections survived.</li>
+<li>One grader-summary disagreement: it attributed a <code>derived</code> item to factorytax-1; the transcript has none (the
+clause was fixed in the same commit). G2's outcome is unaffected.</li>
+<li>Probe scope only: no baseline arm, no held-out pair, no A&ndash;F. Enforcement, one-at-a-time answering and the
+watched/decided questions are not re-tested (<a href="../bench-spec.html#dl-probe">dl-probe</a>).</li>
+</ul>
+
+<h2>Bottom line</h2>
+<p>On a basis carrying the per-passage disposition, the described defect is cut in every cell, the clean control holds, and
+every cell reaches an acceptable and all-MET state that survives handoff. G7 improves from run #7's 175.4 s / 75,677 tokens
+(5/6, one uncapped) to 130.0 s / 51,392 (6/6) at a similar deck cost. This is the first measured per-<a
+href="../bench-spec.html#dl-efficiency">dl-efficiency</a> improvement. The next comparison belongs to the outcome deck with the
+held-out pair, not to another probe on this basis.</p>
+</main></body></html>
