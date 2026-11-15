@@ -31,6 +31,7 @@ import sys
 from pathlib import Path
 
 TAGS = ("P1", "P2")
+CORE = ("status", "directive", "conventions", "log", "fence")
 
 FIXTURES = {
     "ae86": {
@@ -226,6 +227,23 @@ def with_fixtures(html, subject):
     for tag in TAGS:
         html = add_status_clause(html, fx[tag]["status"])
     return html
+
+
+def core_removed(html, base_html):
+    """Required core sections present at the setup commit but gone at handoff.
+    Run #7's clean control removed #log and no probe check saw it."""
+    return [
+        eid for eid in CORE
+        if f'id="{eid}"' in base_html and f'id="{eid}"' not in html
+    ]
+
+
+def setup_spec(repo, name):
+    for line in git(repo, "log", "--format=%H %s").stdout.splitlines():
+        sha, subject = line.split(" ", 1)
+        if subject.startswith("probe: setup"):
+            return git(repo, "show", f"{sha}:{name}", check=False).stdout
+    return ""
 
 
 def main_spec(repo):
@@ -593,6 +611,7 @@ def cmd_check(ev, cell, subject, tag):
     dirty = (
         json.loads(state.read_text()).get("dirty_before", "") if state.exists() else ""
     )
+    removed_core = core_removed(html, setup_spec(repo, spec.name))
     result = {
         "cell": cell,
         "tag": tag,
@@ -615,6 +634,7 @@ def cmd_check(ev, cell, subject, tag):
         },
         "calls": calls(events),
         "dirty_before": dirty,
+        "core_removed": removed_core,
     }
     result.update(metrics(ev, f"{cell}-{tag}"))
     if tag == "P1":
@@ -625,7 +645,8 @@ def cmd_check(ev, cell, subject, tag):
             fx["status_new"] in target, n_out, d_out, p_out
         )
     write_result(ev, result)
-    print(f"probe: {cell}-{tag} neighbor={n_out} derived={d_out} described={p_out}")
+    core = f" core_removed={','.join(removed_core)}" if removed_core else ""
+    print(f"probe: {cell}-{tag} neighbor={n_out} derived={d_out} described={p_out}{core}")
 
 
 def main(argv):

@@ -57,6 +57,16 @@ class Fixtures(unittest.TestCase):
         self.assertLess(html.index('id="x"'), html.index("</main>"))
 
 
+class Core(unittest.TestCase):
+    def test_core_section_removal_is_reported(self):
+        """run #7 ae86-3: the clean control removed #log and no check saw it."""
+        base = '<p id="status">s</p><h2 id="log">D</h2><h2 id="fence">F</h2>'
+        hand = '<p id="status">s</p><h2 id="fence">F</h2>'
+        self.assertEqual(probe.core_removed(hand, base), ["log"])
+        self.assertEqual(probe.core_removed(base, base), [])
+        self.assertEqual(probe.core_removed("<p id='x'>y</p>", ""), [])
+
+
 class Classify(unittest.TestCase):
     def test_planted_slot_reads_stale_then_fixed(self):
         html = probe.with_fixtures(SPEC, "ae86")
