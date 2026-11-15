@@ -182,8 +182,9 @@ deck() {  # one cell's full operating deck, ordered and routed by the registry
   local cell=$1 subject=$2
   local repo="$EV/cells/$cell" arm
   arm=$(arm_of "$cell")
-  local wired=0 line PLAN   # wired evaluated on the seed, before any deck session (dl-w1)
-  grep -qs 'rel="depends-on"' "$repo"/*.html && wired=1
+  local wired line PLAN   # wired evaluated on the seed, before any deck session (dl-w1)
+  wired=$(python3 "$HERE/briefs.py" wired "$repo") || wired=0
+  [ "$wired" = 1 ] || wired=0
   PLAN=$(python3 "$HERE/briefs.py" plan "$subject" deck "$arm") || { log "FATAL brief plan $subject deck $arm"; exit 1; }
   while IFS= read -r line; do
     dispatch "$cell" "$subject" "$repo" "$wired" "$line"

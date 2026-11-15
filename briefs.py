@@ -340,6 +340,16 @@ def session_done(ev, name):
             and transcript_done(ev / "transcripts" / f"{name}.jsonl"))
 
 
+def wired(repo):
+    """True when a seeded spec carries a real depends-on anchor, not the seed's
+    escaped worked example inside <code> (watch-w1grep)."""
+    for p in sorted(Path(repo).glob("*.html")):
+        html = re.sub(r"(?is)<code\b.*?</code>", "", p.read_text(errors="replace"))
+        if re.search(r"(?is)<a\b[^>]*\brel\s*=\s*[\"']depends-on[\"']", html):
+            return True
+    return False
+
+
 def cmd_verify_route(ev, cell, subject, arm="method", phase="deck"):
     """After a cell's deck or probe: every planned session delivered the registry's
     exact bytes (briefs-used/, written by run_session.sh) and left a complete
@@ -541,7 +551,8 @@ def cmd_skeleton(ev, out):
 
 def main(argv):
     usage = ("usage: briefs.py emit-all DIR | plan SUBJECT PHASE [ARM] | "
-             "verify-route EV CELL SUBJECT [ARM] [PHASE] | done EV NAME | skeleton EV OUT")
+             "verify-route EV CELL SUBJECT [ARM] [PHASE] | done EV NAME | "
+             "wired REPO | skeleton EV OUT")
     if len(argv) < 2:
         sys.exit(usage)
     cmd = argv[1]
@@ -555,6 +566,8 @@ def main(argv):
                          argv[6] if len(argv) > 6 else "deck")
     elif cmd == "done" and len(argv) == 4:
         sys.exit(0 if session_done(argv[2], argv[3]) else 1)
+    elif cmd == "wired" and len(argv) == 3:
+        print(1 if wired(argv[2]) else 0)
     elif cmd == "skeleton" and len(argv) == 4:
         cmd_skeleton(argv[2], argv[3])
     else:

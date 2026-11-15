@@ -49,6 +49,17 @@ class BenchDriver(unittest.TestCase):
         driver = Path(os.path.dirname(self.BRIEFS), 'driver.sh').read_text()
         self.assertRegex(driver, r'tdone\(\) \{ python3 "\$HERE/briefs.py" done')   # one implementation
 
+    def test_wired_ignores_the_seeds_escaped_example(self):
+        """watch-w1grep: eligibility counts real edges, not text inside <code>."""
+        sys.path.insert(0, os.path.dirname(self.BRIEFS))
+        import briefs
+        ev = tempfile.mkdtemp(); self.addCleanup(shutil.rmtree, ev, ignore_errors=True)
+        spec = Path(ev, 'spec.html')
+        spec.write_text('<p id="x">x</p><code>&lt;a rel="depends-on" href="#x"&gt;x&lt;/a&gt;</code>')
+        self.assertFalse(briefs.wired(ev))
+        spec.write_text('<p id="y">y</p><p id="x">see <a rel="depends-on" href="#y">y</a></p>')
+        self.assertTrue(briefs.wired(ev))
+
     def test_skeleton_lists_sessions_without_paths(self):
         ev = tempfile.mkdtemp(); self.addCleanup(shutil.rmtree, ev, ignore_errors=True)
         self.case(ev, 'ae86-1-O1', ['text'])
