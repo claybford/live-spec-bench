@@ -57,6 +57,13 @@ class Basis(unittest.TestCase):
         fake.chmod(0o755)
         return bindir
 
+    def test_the_inhibitor_reexec_names_the_driver_absolutely(self):
+        """watch-reexec: systemd-inhibit resolves a command through PATH, so a
+        bare `driver.sh` re-exec dies before any phase."""
+        text = (HERE / "driver.sh").read_text()
+        self.assertIn('exec systemd-inhibit --what=idle "$HERE/driver.sh"', text)
+        self.assertNotIn('exec systemd-inhibit --what=idle "$0"', text)
+
     def test_setup_runs_without_a_system_bus(self):
         d = self.clone()
         env = {**os.environ, "LSPEC_SRC": d, "BENCH_EV": tempfile.mkdtemp(),

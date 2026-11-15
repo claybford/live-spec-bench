@@ -43,7 +43,7 @@ case "$PHASE" in
         exit 2
       fi
       export LSPEC_BENCH_INHIBITED=1
-      exec systemd-inhibit --what=idle "$0" "$PHASE"
+      exec systemd-inhibit --what=idle "$HERE/driver.sh" "$PHASE"
     fi
     ;;
 esac
