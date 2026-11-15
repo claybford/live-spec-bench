@@ -49,6 +49,33 @@ class Basis(unittest.TestCase):
             self.assertEqual(r.returncode, 2, (script, r.stderr))
             self.assertIn("uncommitted changes", r.stderr)
 
+    def busless_inhibitor(self):
+        """A systemd-inhibit that exists but cannot reach a bus (watch-nobus)."""
+        bindir = tempfile.mkdtemp()
+        fake = Path(bindir, "systemd-inhibit")
+        fake.write_text("#!/bin/sh\necho 'Failed to connect to bus' >&2\nexit 2\n")
+        fake.chmod(0o755)
+        return bindir
+
+    def test_setup_runs_without_a_system_bus(self):
+        d = self.clone()
+        env = {**os.environ, "LSPEC_SRC": d, "BENCH_EV": tempfile.mkdtemp(),
+               "PATH": self.busless_inhibitor() + os.pathsep + os.environ["PATH"]}
+        env.pop("LSPEC_BENCH_INHIBITED", None)
+        r = subprocess.run(["bash", str(HERE / "driver.sh"), "setup"],
+                           capture_output=True, text=True, env=env)
+        self.assertEqual(r.returncode, 0, r.stderr)
+
+    def test_a_full_run_stops_when_the_inhibitor_cannot_start(self):
+        d = self.clone()
+        env = {**os.environ, "LSPEC_SRC": d, "BENCH_EV": tempfile.mkdtemp(),
+               "PATH": self.busless_inhibitor() + os.pathsep + os.environ["PATH"]}
+        env.pop("LSPEC_BENCH_INHIBITED", None)
+        r = subprocess.run(["bash", str(HERE / "driver.sh"), "all"],
+                           capture_output=True, text=True, env=env)
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertIn("could not start", r.stderr)
+
     def test_method_base_carries_the_whole_tool(self):
         d = self.clone()
         ev = tempfile.mkdtemp()

@@ -31,10 +31,22 @@ export BENCH_EV=$EV
 # plant a spec defect in (dl-probe)
 arms() { if [ "$PROCEDURE" = probe ]; then echo method; else echo "method baseline"; fi; }
 
-if [ -z "${LSPEC_BENCH_INHIBITED:-}" ] && command -v systemd-inhibit >/dev/null; then
-  export LSPEC_BENCH_INHIBITED=1
-  exec systemd-inhibit --what=idle "$0" "$PHASE"
-fi
+# watch-nobus: setup and scoring need no inhibitor (they start no session);
+# a session batch does, and a full run keeps watch-suspend's protection: if the
+# inhibitor is installed but cannot start, say so and stop before any session.
+case "$PHASE" in
+  inst|deck|probe|all)
+    if [ -z "${LSPEC_BENCH_INHIBITED:-}" ] && command -v systemd-inhibit >/dev/null; then
+      if ! systemd-inhibit --what=idle true 2>/dev/null; then
+        echo "driver.sh: systemd-inhibit is installed but could not start (no bus?);" \
+             "no session ran. Set LSPEC_BENCH_INHIBITED=1 to run without the suspend guard (watch-suspend)." >&2
+        exit 2
+      fi
+      export LSPEC_BENCH_INHIBITED=1
+      exec systemd-inhibit --what=idle "$0" "$PHASE"
+    fi
+    ;;
+esac
 
 log() { echo "$1 $(date -Is)" >> "$EV/driver-progress.log"; }
 
