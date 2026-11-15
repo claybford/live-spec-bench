@@ -53,6 +53,8 @@ FIXTURES = {
                 "copy",
             ),
             passage_key="computes the oil pan depth as 180.0 mm",
+            passage_owner="calc/fitment.py",
+            passage_value=("180.0",),
             neighbor_old="0.02",
             neighbor_new="0.08",
             status_old="0.12",
@@ -101,6 +103,8 @@ FIXTURES = {
                 "copy",
             ),
             passage_key="defines six annual withholding brackets",
+            passage_owner="factorytax/brackets.py",
+            passage_value=("six", "6"),
             neighbor_old="05:00",
             neighbor_new="07:00",
             status_old="4 hours",
@@ -410,6 +414,13 @@ def metrics(ev, name):
     }
 
 
+def is_pointer(p, fx):
+    """A real pointer names the owning artifact and restates no value; a
+    reworded copy that keeps a value is the rubric's FAILED case (run #6
+    ae86-3 answered confirmed)."""
+    return fx["passage_owner"] in p and not any(v in p for v in fx["passage_value"])
+
+
 def classify(html, subject, tag, ans):
     fx = FIXTURES[subject]
     if tag == "P1":
@@ -436,8 +447,10 @@ def classify(html, subject, tag, ans):
             p_out = "cut"
         elif fx[tag]["passage_key"] in p:
             p_out = "kept"
+        elif is_pointer(p, fx[tag]):
+            p_out = "pointer"
         else:
-            p_out = "shortened"
+            p_out = "reworded"
     else:
         n = text(html, fx[tag]["neighbor"][0])
         n_out = (
@@ -488,6 +501,17 @@ def transcript_timeline(path):
     return first, last, finishes
 
 
+def acceptable(target_ok, n, d, p):
+    """G7's acceptable state: target updated, no neighbor/derived failure, the
+    description cut or reduced to a real pointer -- never a reworded restatement."""
+    return (
+        target_ok
+        and n in ("fixed", "removed")
+        and d in ("fixed", "removed")
+        and p in ("cut", "pointer")
+    )
+
+
 def completion(repo, spec_name, path, subject):
     """Time and tokens to the first acceptable and first all-MET P1 commit,
     the bench's semantic efficiency axis (rubric G7). Acceptable still requires
@@ -513,15 +537,10 @@ def completion(repo, spec_name, path, subject):
         n, d, p = classify(html, subject, "P1", {})
         target = text(html, fx["target"][0]) or ""
         target_ok = fx["status_new"] in target
-        acceptable = (
-            target_ok
-            and n in ("fixed", "removed")
-            and d in ("fixed", "removed")
-            and p in ("cut", "shortened")
-        )
+        ok = acceptable(target_ok, n, d, p)
         strict = target_ok and n == "fixed" and d == "fixed" and p == "cut"
         point = commit_point(sha, stamp, start, finishes)
-        if acceptable and out["first_acceptable"] is None:
+        if ok and out["first_acceptable"] is None:
             out["first_acceptable"] = point
         if strict and out["first_strict"] is None:
             out["first_strict"] = point
@@ -599,7 +618,12 @@ def cmd_check(ev, cell, subject, tag):
     }
     result.update(metrics(ev, f"{cell}-{tag}"))
     if tag == "P1":
+        fx = FIXTURES[subject]["P1"]
+        target = text(html, fx["target"][0]) or ""
         result["completion"] = completion(repo, spec.name, tpath, subject)
+        result["completion"]["survived"] = acceptable(
+            fx["status_new"] in target, n_out, d_out, p_out
+        )
     write_result(ev, result)
     print(f"probe: {cell}-{tag} neighbor={n_out} derived={d_out} described={p_out}")
 

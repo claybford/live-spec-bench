@@ -464,15 +464,19 @@ def probe_completion(results, h):
           "neighbor/derived failure and the description cut or pointed at its file. A pointer is "
           "acceptable, not a clean cut. All-MET is stricter: fixed, fixed and cut. Never is uncapped.</p>",
           "<table><tr><th>Cell</th><th>First acceptable (s / tokens)</th>"
-          "<th>First all-MET (s / tokens)</th><th>Session (s)</th></tr>"]
+          "<th>First all-MET (s / tokens)</th><th>Session (s)</th>"
+          "<th>Survives to handoff</th></tr>"]
     def point(p):
         if not p:
             return "never"
         return f"{p['seconds']:.1f} / {p['tokens']:,}"
     for r in sorted(rows, key=lambda r: r.get("cell", "")):
         c = r["completion"]
+        survived = c.get("survived")
+        survives = "yes" if survived else ("no" if survived is False else "?")
         h.append(f"<tr><td>{r.get('cell')}</td><td>{point(c.get('first_acceptable'))}</td>"
-                 f"<td>{point(c.get('first_strict'))}</td><td>{c.get('session_seconds') or '?'}</td></tr>")
+                 f"<td>{point(c.get('first_strict'))}</td><td>{c.get('session_seconds') or '?'}</td>"
+                 f"<td>{survives}</td></tr>")
     h.append("</table>")
 
 

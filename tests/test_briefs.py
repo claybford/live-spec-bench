@@ -119,11 +119,13 @@ class BenchDriver(unittest.TestCase):
             'session_seconds': 200.0,
             'first_acceptable': {'seconds': 180.0, 'tokens': 5000},
             'first_strict': None,
+            'survived': False,
         }}], h)
         html_ = ''.join(h)
         self.assertIn('Time to correct commit (G7)', html_)
         self.assertIn('180.0 / 5,000', html_)
         self.assertIn('never', html_)
+        self.assertIn('<td>no</td>', html_)
 
     def test_registry_has_two_arms_and_held_out_slots(self):
         """dl-baseline, dl-heldout: the method arm's briefs are byte-pinned;

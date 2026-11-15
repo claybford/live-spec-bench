@@ -83,12 +83,22 @@ class Classify(unittest.TestCase):
         self.assertEqual(
             probe.classify(fixed, "ae86", "P1", {}), ("fixed", "fixed", "cut")
         )
-        shortened = html.replace(
+        pointer = html.replace(
             "calc/fitment.py computes the oil pan depth as 180.0 mm and compares it "
             "with the crossmember clearance.",
             "See calc/fitment.py for the clearance check.",
         )
-        self.assertEqual(probe.classify(shortened, "ae86", "P1", {})[2], "shortened")
+        self.assertEqual(probe.classify(pointer, "ae86", "P1", {})[2], "pointer")
+        reworded = html.replace(
+            "calc/fitment.py computes the oil pan depth as 180.0 mm and compares it "
+            "with the crossmember clearance.",
+            "the published 180.0 mm pan depth against the crossmember-to-pan-area "
+            "reading is computed by calc/fitment.py",
+        )
+        self.assertEqual(probe.classify(reworded, "ae86", "P1", {})[2], "reworded")
+        self.assertTrue(probe.acceptable(True, "fixed", "fixed", "pointer"))
+        self.assertFalse(probe.acceptable(True, "fixed", "fixed", "reworded"))
+        self.assertFalse(probe.acceptable(True, "fixed", "fixed", "kept"))
 
     def test_clean_slot_reads_kept(self):
         html = probe.with_fixtures(SPEC, "factorytax")
@@ -243,6 +253,7 @@ class EndToEnd(unittest.TestCase):
         self.assertEqual(result["described"]["outcome"], "cut")
         self.assertEqual(result["calls"], 6)
         self.assertEqual(result["tokens"], 120)
+        self.assertTrue(result["completion"]["survived"])
 
     def test_time_to_first_acceptable_commit(self):
         """G7: the first correct commit gets its own time and a token cutoff,
